@@ -186,9 +186,13 @@ impl Prover {
         let constraints = u64::from_be_bytes(constraints) as usize;
         bytes = &bytes[8..];
 
-        if bytes.len()
-            < label_len + prover_key_len + commit_key_len + verifier_key_len
-        {
+        let required_len = label_len
+            .checked_add(prover_key_len)
+            .and_then(|len| len.checked_add(commit_key_len))
+            .and_then(|len| len.checked_add(verifier_key_len))
+            .ok_or(Error::NotEnoughBytes)?;
+
+        if bytes.len() < required_len {
             return Err(Error::NotEnoughBytes);
         }
 
@@ -668,5 +672,24 @@ mod tests {
             result.expect("checked above").is_err(),
             "malformed input must be rejected"
         );
+    }
+
+    #[test]
+    fn prover_try_from_bytes_rejects_overflow_lengths_without_panicking() {
+        let mut bytes = Vec::with_capacity(48);
+        bytes.extend_from_slice(&0u64.to_be_bytes()); // label_len
+        bytes.extend_from_slice(&u64::MAX.to_be_bytes()); // prover_key_len
+        bytes.extend_from_slice(&u64::MAX.to_be_bytes()); // commit_key_len
+        bytes.extend_from_slice(&u64::MAX.to_be_bytes()); // verifier_key_len
+        bytes.extend_from_slice(&0u64.to_be_bytes()); // size
+        bytes.extend_from_slice(&0u64.to_be_bytes()); // constraints
+
+        let result =
+            std::panic::catch_unwind(|| Prover::try_from_bytes(&bytes));
+        assert!(result.is_ok(), "deserializer should never panic");
+        assert!(matches!(
+            result.expect("checked above"),
+            Err(Error::NotEnoughBytes)
+        ));
     }
 }

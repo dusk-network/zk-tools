@@ -33,6 +33,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   with checked parsing.
 - Removed unsafe transcript label transmute usage.
 - Wired transcript seeding so v3 correctly binds `s_sigma_4`.
+- Hardened prover/verifier deserialization length parsing to reject
+  overflowed malformed length fields without panicking.
 
 ## [0.21.0] - 2025-02-06
 
