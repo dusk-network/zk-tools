@@ -139,6 +139,9 @@ impl Verifier {
         let public_input_indexes_len =
             u64::from_be_bytes(public_input_indexes_len) as usize;
         bytes = &bytes[8..];
+        let public_input_indexes_bytes_len = public_input_indexes_len
+            .checked_mul(8)
+            .ok_or(Error::NotEnoughBytes)?;
 
         let size = <[u8; 8]>::try_from(&bytes[..8]).expect("checked len");
         let size = u64::from_be_bytes(size) as usize;
@@ -149,12 +152,13 @@ impl Verifier {
         let constraints = u64::from_be_bytes(constraints) as usize;
         bytes = &bytes[8..];
 
-        if bytes.len()
-            < label_len
-                + verifier_key_len
-                + opening_key_len
-                + public_input_indexes_len * 8
-        {
+        let required_len = label_len
+            .checked_add(verifier_key_len)
+            .and_then(|len| len.checked_add(opening_key_len))
+            .and_then(|len| len.checked_add(public_input_indexes_bytes_len))
+            .ok_or(Error::NotEnoughBytes)?;
+
+        if bytes.len() < required_len {
             return Err(Error::NotEnoughBytes);
         }
 
@@ -167,7 +171,7 @@ impl Verifier {
         let opening_key = &bytes[..opening_key_len];
         bytes = &bytes[opening_key_len..];
 
-        let public_input_indexes = &bytes[..public_input_indexes_len * 8];
+        let public_input_indexes = &bytes[..public_input_indexes_bytes_len];
 
         let label = label.to_vec();
         let verifier_key = VerifierKey::from_slice(verifier_key)?;
@@ -250,5 +254,29 @@ impl Verifier {
                 self.constraints,
             ),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn verifier_try_from_bytes_rejects_overflow_lengths_without_panicking() {
+        let mut bytes = Vec::with_capacity(48);
+        bytes.extend_from_slice(&0u64.to_be_bytes()); // label_len
+        bytes.extend_from_slice(&0u64.to_be_bytes()); // verifier_key_len
+        bytes.extend_from_slice(&0u64.to_be_bytes()); // opening_key_len
+        bytes.extend_from_slice(&u64::MAX.to_be_bytes()); // public_input_indexes_len
+        bytes.extend_from_slice(&0u64.to_be_bytes()); // size
+        bytes.extend_from_slice(&0u64.to_be_bytes()); // constraints
+
+        let result =
+            std::panic::catch_unwind(|| Verifier::try_from_bytes(&bytes));
+        assert!(
+            result.is_ok(),
+            "try_from_bytes panicked on overflow lengths"
+        );
+        assert!(matches!(result.unwrap(), Err(Error::NotEnoughBytes)));
     }
 }
