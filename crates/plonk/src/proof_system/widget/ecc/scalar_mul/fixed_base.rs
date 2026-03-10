@@ -11,7 +11,6 @@ mod verifierkey;
 
 #[cfg(feature = "alloc")]
 pub(crate) use proverkey::ProverKey;
-
 pub(crate) use verifierkey::VerifierKey;
 
 // Note: The ECC gadget does not check that the initial point is on the curve

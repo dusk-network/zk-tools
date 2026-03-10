@@ -7,8 +7,9 @@
 // Extracted from
 // https://github.com/dusk-network/Poseidon252/blob/master/assets/HOWTO.md
 
-use super::BlsScalar;
 use sha2::{Digest, Sha512};
+
+use super::BlsScalar;
 
 // the width of the hades permutation container
 const WIDTH: usize = 5;

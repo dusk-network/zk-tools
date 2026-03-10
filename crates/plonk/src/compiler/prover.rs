@@ -13,16 +13,16 @@ use ff::Field;
 use merlin::Transcript;
 use rand_core::{CryptoRng, RngCore};
 
+use super::{Circuit, Composer, PlonkVersion};
 use crate::commitment_scheme::CommitKey;
 use crate::compiler::prover::linearization_poly::ProofEvaluations;
 use crate::error::Error;
 use crate::fft::{EvaluationDomain, Polynomial};
+use crate::proof_system::proof::Proof;
 use crate::proof_system::{
-    ProverKey, VerifierKey, linearization_poly, proof::Proof, quotient_poly,
+    ProverKey, VerifierKey, linearization_poly, quotient_poly,
 };
 use crate::transcript::TranscriptProtocol;
-
-use super::{Circuit, Composer, PlonkVersion};
 
 /// Turbo Prover with processed keys
 #[derive(Clone)]
@@ -636,12 +636,13 @@ impl Prover {
 
 #[cfg(test)]
 mod tests {
-    use super::Prover;
-    use crate::error::Error;
-    use crate::prelude::{Circuit, Compiler, Composer, PublicParameters};
     use dusk_bls12_381::BlsScalar;
     use rand::SeedableRng;
     use rand::rngs::StdRng;
+
+    use super::Prover;
+    use crate::error::Error;
+    use crate::prelude::{Circuit, Compiler, Composer, PublicParameters};
 
     #[derive(Default)]
     struct MinimalCircuit;

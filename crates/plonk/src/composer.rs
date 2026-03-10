@@ -8,10 +8,10 @@
 
 use alloc::vec::Vec;
 use core::{cmp, ops};
-use hashbrown::HashMap;
 
 use dusk_bls12_381::BlsScalar;
 use dusk_jubjub::{JubJubAffine, JubJubExtended, JubJubScalar};
+use hashbrown::HashMap;
 
 use crate::bit_iterator::BitIterator8;
 use crate::error::Error;
@@ -26,9 +26,8 @@ pub(crate) mod permutation;
 
 pub use circuit::Circuit;
 pub use constraint_system::{Constraint, Witness, WitnessPoint};
-pub use gate::Gate;
-
 pub(crate) use constraint_system::{Selector, WireData, WiredWitness};
+pub use gate::Gate;
 pub(crate) use permutation::Permutation;
 
 /// Construct and prove circuits
@@ -61,20 +60,18 @@ impl ops::Index<Witness> for Composer {
 // pub trait Composer: Sized + Index<Witness, Output = BlsScalar> {
 /// Circuit builder tool
 impl Composer {
-    /// Zero representation inside the constraint system.
-    ///
-    /// A turbo composer expects the first witness to be always present and to
-    /// be zero.
-    pub const ZERO: Witness = Witness::ZERO;
-
+    /// Identity point representation inside the constraint system
+    pub const IDENTITY: WitnessPoint = WitnessPoint::new(Self::ZERO, Self::ONE);
     /// `One` representation inside the constraint system.
     ///
     /// A turbo composer expects the 2nd witness to be always present and to
     /// be one.
     pub const ONE: Witness = Witness::ONE;
-
-    /// Identity point representation inside the constraint system
-    pub const IDENTITY: WitnessPoint = WitnessPoint::new(Self::ZERO, Self::ONE);
+    /// Zero representation inside the constraint system.
+    ///
+    /// A turbo composer expects the first witness to be always present and to
+    /// be zero.
+    pub const ZERO: Witness = Witness::ZERO;
 
     /// Constraints count
     pub fn constraints(&self) -> usize {

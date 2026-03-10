@@ -10,10 +10,9 @@
 use dusk_bls12_381::BlsScalar;
 
 #[cfg(feature = "debug")]
-use crate::prelude::{Constraint, Witness};
-
-#[cfg(feature = "debug")]
 use crate::debugger::Debugger;
+#[cfg(feature = "debug")]
+use crate::prelude::{Constraint, Witness};
 
 /// Runtime events
 #[derive(Debug, Clone, Copy)]
@@ -72,12 +71,12 @@ impl Runtime {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-
-    #[cfg(feature = "debug")]
-    use crate::prelude::{Constraint, Witness};
     #[cfg(feature = "debug")]
     use dusk_bls12_381::BlsScalar;
+
+    use super::*;
+    #[cfg(feature = "debug")]
+    use crate::prelude::{Constraint, Witness};
 
     #[test]
     fn runtime_new_default_and_events_do_not_panic() {

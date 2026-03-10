@@ -6,21 +6,23 @@
 
 //! The Public Parameters can also be referred to as the Structured Reference
 //! String (SRS).
-use super::key::{CommitKey, OpeningKey};
-use crate::{error::Error, util};
 use alloc::vec::Vec;
+
+#[cfg(feature = "rkyv-impl")]
+use bytecheck::CheckBytes;
 use dusk_bls12_381::{BlsScalar, G1Affine, G1Projective, G2Affine};
 use dusk_bytes::{DeserializableSlice, Serializable};
 use ff::Field;
 use rand_core::{CryptoRng, RngCore};
-
-#[cfg(feature = "rkyv-impl")]
-use bytecheck::CheckBytes;
 #[cfg(feature = "rkyv-impl")]
 use rkyv::{
     Archive, Deserialize, Serialize,
     ser::{ScratchSpace, Serializer},
 };
+
+use super::key::{CommitKey, OpeningKey};
+use crate::error::Error;
+use crate::util;
 
 /// The Public Parameters can also be referred to as the Structured Reference
 /// String (SRS). It is available to both the prover and verifier and allows the
@@ -204,9 +206,10 @@ impl PublicParameters {
 #[cfg(feature = "std")]
 #[cfg(test)]
 mod test {
-    use super::*;
     use dusk_bls12_381::BlsScalar;
     use rand_core::OsRng;
+
+    use super::*;
 
     #[test]
     fn test_powers_of() {

@@ -4,8 +4,9 @@
 //
 // Copyright (c) DUSK NETWORK. All rights reserved.
 
-use crate::commitment_scheme::Commitment;
 use dusk_bytes::{DeserializableSlice, Serializable};
+
+use crate::commitment_scheme::Commitment;
 
 pub mod arithmetic;
 pub mod ecc;
@@ -14,14 +15,15 @@ pub mod permutation;
 pub mod range;
 
 #[cfg(feature = "rkyv-impl")]
-use crate::util::check_field;
-#[cfg(feature = "rkyv-impl")]
 use bytecheck::{CheckBytes, StructCheckError};
 #[cfg(feature = "rkyv-impl")]
 use rkyv::{
     Archive, Deserialize, Serialize,
     ser::{ScratchSpace, Serializer},
 };
+
+#[cfg(feature = "rkyv-impl")]
+use crate::util::check_field;
 
 /// PLONK circuit Verification Key.
 ///
@@ -197,11 +199,9 @@ impl VerifierKey {
 #[cfg(feature = "alloc")]
 pub(crate) mod alloc {
     use super::*;
-    use crate::{
-        error::Error,
-        fft::{EvaluationDomain, Evaluations, Polynomial},
-        transcript::TranscriptProtocol,
-    };
+    use crate::error::Error;
+    use crate::fft::{EvaluationDomain, Evaluations, Polynomial};
+    use crate::transcript::TranscriptProtocol;
     #[rustfmt::skip]
     use ::alloc::vec::Vec;
     use dusk_bls12_381::BlsScalar;
@@ -596,10 +596,11 @@ pub(crate) mod alloc {
 #[cfg(feature = "alloc")]
 #[cfg(test)]
 mod test {
+    use ff::Field;
+
     use super::alloc::ProverKey;
     use super::*;
     use crate::fft::{EvaluationDomain, Evaluations, Polynomial};
-    use ff::Field;
     #[rustfmt::skip]
     use ::alloc::vec::Vec;
     use dusk_bls12_381::BlsScalar;
@@ -702,8 +703,9 @@ mod test {
 
     #[test]
     fn test_serialize_deserialize_verifier_key() {
-        use crate::commitment_scheme::Commitment;
         use dusk_bls12_381::G1Affine;
+
+        use crate::commitment_scheme::Commitment;
 
         let n = 2usize.pow(5);
 
@@ -775,10 +777,11 @@ mod test {
 
     #[test]
     fn seed_transcript_binds_s_sigma_4_commitment() {
-        use crate::commitment_scheme::Commitment;
-        use crate::transcript::TranscriptProtocol;
         use dusk_bls12_381::G1Affine;
         use merlin::Transcript;
+
+        use crate::commitment_scheme::Commitment;
+        use crate::transcript::TranscriptProtocol;
 
         let n = 2usize.pow(5);
         let common = Commitment(G1Affine::generator());

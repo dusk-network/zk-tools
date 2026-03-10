@@ -201,9 +201,10 @@ impl std::error::Error for Error {}
 
 #[cfg(all(test, feature = "std"))]
 mod tests {
-    use super::*;
     use dusk_bls12_381::BlsScalar;
     use dusk_bytes::{DeserializableSlice, Serializable};
+
+    use super::*;
 
     #[test]
     fn display_arms_are_exercised() {
