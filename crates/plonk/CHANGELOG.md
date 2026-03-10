@@ -9,10 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Added more tests for low coverage parts of the code [#861] 
+- Add Makefile targets for test, clippy, fmt, bench, no-std, and clean
+- Add `AGENTS.md` for AI agent orientation
+- Added more tests for low coverage parts of the code [#861]
 - Added MSRV, set to rust version `1.85` [#860]
 
 ### Changed
+
+- Update `rustfmt.toml` with nightly options (group_imports, imports_granularity, reorder_impl_items, use_field_init_shorthand)
+- Update CI to use Makefile targets for tests and no_std builds
 
 - Update rust edition to 2024 [#861]
 - Update rust toolchain to stable [#859]
