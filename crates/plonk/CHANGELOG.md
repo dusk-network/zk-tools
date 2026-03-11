@@ -18,7 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Update `rustfmt.toml` with nightly options (group_imports, imports_granularity, reorder_impl_items, use_field_init_shorthand)
 - Update CI to use Makefile targets for tests and no_std builds
-- Switch CI runners to `core` self-hosted runners; bump coverage runner to `ubuntu-24.04`
+- Switch CI runners to `core` self-hosted runners
 
 - Update rust edition to 2024 [#861]
 - Update rust toolchain to stable [#859]
