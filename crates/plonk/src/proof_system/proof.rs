@@ -375,9 +375,9 @@ pub(crate) mod alloc {
 
             // Evaluations to compute [E]_1
             //
-            // IMPORTANT: Ordering must match the prover's batched opening at `z`
-            // (`CommitKey::compute_aggregate_witness([...])`) and the verifier's
-            // commitment list below.
+            // IMPORTANT: Ordering must match the prover's batched opening at
+            // `z` (`CommitKey::compute_aggregate_witness([...])`)
+            // and the verifier's commitment list below.
             let E_evals = vec![
                 // Unshifted openings at z
                 self.evaluations.a_eval,
@@ -1062,11 +1062,11 @@ mod soundness_tests {
     ///
     /// The proof uses:
     /// - Honest wire polynomials (circuit is satisfied at gate level)
-    /// - A RANDOM permutation polynomial z (breaking the permutation
-    ///   argument — gates are not properly wired together)
+    /// - A RANDOM permutation polynomial z (breaking the permutation argument —
+    ///   gates are not properly wired together)
     /// - RANDOM quotient polynomials (not the actual quotient)
-    /// - A FORGED `q_arith_eval` computed to balance the verification
-    ///   equation after observing `z_challenge`
+    /// - A FORGED `q_arith_eval` computed to balance the verification equation
+    ///   after observing `z_challenge`
     ///
     /// This proof is invalid (the permutation argument does not hold)
     /// but exploits the fact that selector evaluations are not bound

@@ -510,10 +510,12 @@ impl Composer {
         let acc_y = self.append_witness(point_acc[bits].get_v());
 
         // This is the final scalar recurrence state
-        // It is constrained by the previous fixed-base row as d_w and by assert_equal below
+        // It is constrained by the previous fixed-base row as d_w and by
+        // assert_equal below
         let last_accumulated_bit = self.append_witness(scalar_acc[bits]);
 
-        // Keep this anchor row since removing it would break the shifted-wire chain.
+        // Keep this anchor row since removing it would break the shifted-wire
+        // chain.
         let constraint =
             Constraint::new().a(acc_x).b(acc_y).d(last_accumulated_bit);
         self.append_gate(constraint);
