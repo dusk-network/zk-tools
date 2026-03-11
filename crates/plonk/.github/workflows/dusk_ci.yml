@@ -19,47 +19,52 @@ jobs:
 
   build_benches:
     name: Build Benchmarks
-    runs-on: ubuntu-latest
+    runs-on: core
     steps:
       - uses: actions/checkout@v4
+      - uses: dsherret/rust-toolchain-file@v1
       - uses: Swatinem/rust-cache@v2
       - run: cargo bench --no-run
 
   run_examples:
     name: Run Examples
-    runs-on: ubuntu-latest
+    runs-on: core
     steps:
       - uses: actions/checkout@v4
+      - uses: dsherret/rust-toolchain-file@v1
       - uses: Swatinem/rust-cache@v2
       - run: cargo run --release --example circuit
 
   build_docs:
     name: Build Documentation
-    runs-on: ubuntu-latest
+    runs-on: core
     steps:
       - uses: actions/checkout@v4
+      - uses: dsherret/rust-toolchain-file@v1
       - run: make doc
       - run: make doc-internal
 
   build_no_std:
     name: Build no_std
-    runs-on: ubuntu-latest
+    runs-on: core
     steps:
       - uses: actions/checkout@v4
+      - uses: dsherret/rust-toolchain-file@v1
       - uses: Swatinem/rust-cache@v2
       - run: make no-std
 
   test:
     name: Tests
-    runs-on: ubuntu-latest
+    runs-on: core
     steps:
       - uses: actions/checkout@v4
+      - uses: dsherret/rust-toolchain-file@v1
       - uses: Swatinem/rust-cache@v2
       - run: make test
 
   coverage:
     name: Coverage
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - uses: Swatinem/rust-cache@v2
