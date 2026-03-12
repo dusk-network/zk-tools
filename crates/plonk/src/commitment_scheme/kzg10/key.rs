@@ -7,25 +7,26 @@
 //! Key module contains the utilities and data structures
 //! that support the generation and usage of Commit and
 //! Opening keys.
-use super::{Commitment, proof::Proof};
-use crate::{
-    error::Error, fft::Polynomial, transcript::TranscriptProtocol, util,
-};
 use alloc::vec::Vec;
-use dusk_bls12_381::{
-    BlsScalar, G1Affine, G1Projective, G2Affine, G2Prepared,
-    multiscalar_mul::msm_variable_base,
-};
-use dusk_bytes::{DeserializableSlice, Serializable};
-use merlin::Transcript;
 
 #[cfg(feature = "rkyv-impl")]
 use bytecheck::CheckBytes;
+use dusk_bls12_381::multiscalar_mul::msm_variable_base;
+use dusk_bls12_381::{BlsScalar, G1Affine, G1Projective, G2Affine, G2Prepared};
+use dusk_bytes::{DeserializableSlice, Serializable};
+use merlin::Transcript;
 #[cfg(feature = "rkyv-impl")]
 use rkyv::{
     Archive, Deserialize, Serialize,
     ser::{ScratchSpace, Serializer},
 };
+
+use super::Commitment;
+use super::proof::Proof;
+use crate::error::Error;
+use crate::fft::Polynomial;
+use crate::transcript::TranscriptProtocol;
+use crate::util;
 
 /// CommitKey is used to commit to a polynomial which is bounded by the
 /// max_degree.
@@ -279,6 +280,7 @@ pub struct OpeningKey {
 
 impl Serializable<{ G1Affine::SIZE + G2Affine::SIZE * 2 }> for OpeningKey {
     type Error = dusk_bytes::Error;
+
     #[allow(unused_must_use)]
     fn to_bytes(&self) -> [u8; Self::SIZE] {
         use dusk_bytes::Write;
@@ -366,13 +368,14 @@ impl OpeningKey {
 #[cfg(feature = "std")]
 #[cfg(test)]
 mod test {
-    use super::*;
-    use crate::commitment_scheme::{AggregateProof, PublicParameters};
-    use crate::fft::Polynomial;
     use dusk_bls12_381::BlsScalar;
     use dusk_bytes::Serializable;
     use merlin::Transcript;
     use rand_core::OsRng;
+
+    use super::*;
+    use crate::commitment_scheme::{AggregateProof, PublicParameters};
+    use crate::fft::Polynomial;
 
     // Checks that a polynomial `p` was evaluated at a point `z` and returned
     // the value specified `v`. ie. v = p(z).

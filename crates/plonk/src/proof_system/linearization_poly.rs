@@ -4,21 +4,20 @@
 //
 // Copyright (c) DUSK NETWORK. All rights reserved.
 
-#[cfg(feature = "alloc")]
-use crate::{
-    fft::{EvaluationDomain, Polynomial},
-    proof_system::{ProverKey, proof},
-};
-
-use dusk_bls12_381::BlsScalar;
-use dusk_bytes::{DeserializableSlice, Serializable};
-
 #[cfg(feature = "rkyv-impl")]
 use bytecheck::CheckBytes;
+use dusk_bls12_381::BlsScalar;
+use dusk_bytes::{DeserializableSlice, Serializable};
 #[cfg(feature = "rkyv-impl")]
 use rkyv::{
     Archive, Deserialize, Serialize,
     ser::{ScratchSpace, Serializer},
+};
+
+#[cfg(feature = "alloc")]
+use crate::{
+    fft::{EvaluationDomain, Polynomial},
+    proof_system::{ProverKey, proof},
 };
 
 /// Subset of all of the evaluations. These evaluations

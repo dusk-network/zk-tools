@@ -6,23 +6,24 @@
 
 //! A polynomial represented in evaluations form over a domain of size 2^n.
 
-use super::domain::EvaluationDomain;
-use super::polynomial::Polynomial;
-use crate::error::Error;
 use alloc::vec::Vec;
 use core::ops::{
     Add, AddAssign, DivAssign, Index, Mul, MulAssign, Sub, SubAssign,
 };
-use dusk_bls12_381::BlsScalar;
-use dusk_bytes::{DeserializableSlice, Serializable};
 
 #[cfg(feature = "rkyv-impl")]
 use bytecheck::CheckBytes;
+use dusk_bls12_381::BlsScalar;
+use dusk_bytes::{DeserializableSlice, Serializable};
 #[cfg(feature = "rkyv-impl")]
 use rkyv::{
     Archive, Deserialize, Serialize,
     ser::{ScratchSpace, Serializer},
 };
+
+use super::domain::EvaluationDomain;
+use super::polynomial::Polynomial;
+use crate::error::Error;
 
 /// Stores a polynomial in evaluation form.
 #[derive(PartialEq, Eq, Debug, Clone)]

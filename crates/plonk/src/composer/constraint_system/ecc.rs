@@ -4,8 +4,9 @@
 //
 // Copyright (c) DUSK NETWORK. All rights reserved.
 
-use crate::prelude::Witness;
 use dusk_bls12_381::BlsScalar;
+
+use crate::prelude::Witness;
 
 /// Represents a JubJub point in the circuit
 #[derive(Debug, Clone, Copy)]

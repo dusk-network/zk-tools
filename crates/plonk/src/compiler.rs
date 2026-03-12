@@ -9,10 +9,9 @@ use dusk_bls12_381::BlsScalar;
 use crate::commitment_scheme::{CommitKey, OpeningKey, PublicParameters};
 use crate::error::Error;
 use crate::fft::{EvaluationDomain, Evaluations, Polynomial};
+use crate::prelude::{Circuit, Composer};
 use crate::proof_system::preprocess::Polynomials;
 use crate::proof_system::{ProverKey, widget};
-
-use crate::prelude::{Circuit, Composer};
 
 mod prover;
 mod verifier;

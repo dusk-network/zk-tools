@@ -4,8 +4,6 @@
 //
 // Copyright (c) DUSK NETWORK. All rights reserved.
 
-use crate::commitment_scheme::Commitment;
-
 #[cfg(feature = "rkyv-impl")]
 use bytecheck::CheckBytes;
 #[cfg(feature = "rkyv-impl")]
@@ -13,6 +11,8 @@ use rkyv::{
     Archive, Deserialize, Serialize,
     ser::{ScratchSpace, Serializer},
 };
+
+use crate::commitment_scheme::Commitment;
 
 #[derive(Debug, PartialEq, Eq, Copy, Clone)]
 #[cfg_attr(

@@ -4,11 +4,11 @@
 //
 // Copyright (c) DUSK NETWORK. All rights reserved.
 
+use alloc::vec::Vec;
+
 use dusk_bytes::Serializable;
 use hashbrown::HashMap;
 use msgpacker::{MsgPacker, Packable, Unpackable};
-
-use alloc::vec::Vec;
 
 use super::{BlsScalar, Composer, Constraint, Error, Gate, Selector, Witness};
 

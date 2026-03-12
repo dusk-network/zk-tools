@@ -7,13 +7,12 @@
 //! A Proof stores the commitments to all of the elements that
 //! are needed to univocally identify a prove of some statement.
 
-use super::linearization_poly::ProofEvaluations;
-use crate::commitment_scheme::Commitment;
-
 use dusk_bytes::{DeserializableSlice, Serializable};
-
 #[cfg(feature = "std")]
 use rayon::prelude::*;
+
+use super::linearization_poly::ProofEvaluations;
+use crate::commitment_scheme::Commitment;
 
 // Number of (unshifted) polynomials opened at `z`, excluding the linearization
 // polynomial `r(X)`.
@@ -30,14 +29,15 @@ const V_MAX_DEGREE: usize = 11;
 const V_MAX_DEGREE_LEGACY: usize = 7;
 
 #[cfg(feature = "rkyv-impl")]
-use crate::util::check_field;
-#[cfg(feature = "rkyv-impl")]
 use bytecheck::{CheckBytes, StructCheckError};
 #[cfg(feature = "rkyv-impl")]
 use rkyv::{
     Archive, Deserialize, Serialize,
     ser::{ScratchSpace, Serializer},
 };
+
+#[cfg(feature = "rkyv-impl")]
+use crate::util::check_field;
 
 /// A Proof is a composition of `Commitment`s to the Witness, Permutation,
 /// Quotient, Shifted and Opening polynomials as well as the
@@ -198,19 +198,16 @@ impl Serializable<{ 11 * Commitment::SIZE + ProofEvaluations::SIZE }>
 #[allow(unused_imports)]
 pub(crate) mod alloc {
     use super::*;
-    use crate::{
-        commitment_scheme::{AggregateProof, OpeningKey},
-        error::Error,
-        fft::EvaluationDomain,
-        proof_system::widget::VerifierKey,
-        transcript::TranscriptProtocol,
-        util::batch_inversion,
-    };
+    use crate::commitment_scheme::{AggregateProof, OpeningKey};
+    use crate::error::Error;
+    use crate::fft::EvaluationDomain;
+    use crate::proof_system::widget::VerifierKey;
+    use crate::transcript::TranscriptProtocol;
+    use crate::util::batch_inversion;
     #[rustfmt::skip]
     use ::alloc::vec::Vec;
-    use dusk_bls12_381::{
-        BlsScalar, G1Affine, G1Projective, multiscalar_mul::msm_variable_base,
-    };
+    use dusk_bls12_381::multiscalar_mul::msm_variable_base;
+    use dusk_bls12_381::{BlsScalar, G1Affine, G1Projective};
     use merlin::Transcript;
     #[cfg(feature = "std")]
     use rayon::prelude::*;
@@ -378,9 +375,9 @@ pub(crate) mod alloc {
 
             // Evaluations to compute [E]_1
             //
-            // IMPORTANT: Ordering must match the prover's batched opening at `z`
-            // (`CommitKey::compute_aggregate_witness([...])`) and the verifier's
-            // commitment list below.
+            // IMPORTANT: Ordering must match the prover's batched opening at
+            // `z` (`CommitKey::compute_aggregate_witness([...])`)
+            // and the verifier's commitment list below.
             let E_evals = vec![
                 // Unshifted openings at z
                 self.evaluations.a_eval,
@@ -951,10 +948,11 @@ pub(crate) mod alloc {
 
 #[cfg(test)]
 mod proof_tests {
-    use super::*;
     use dusk_bls12_381::BlsScalar;
     use ff::Field;
     use rand_core::OsRng;
+
+    use super::*;
 
     #[test]
     fn test_dusk_bytes_serde_proof() {
@@ -1010,6 +1008,12 @@ mod proof_tests {
 #[cfg(test)]
 #[cfg(feature = "std")]
 mod soundness_tests {
+    use dusk_bls12_381::BlsScalar;
+    use ff::Field;
+    use rand::SeedableRng;
+    use rand::rngs::StdRng;
+    use rand_core::{CryptoRng, RngCore};
+
     use crate::commitment_scheme::{CommitKey, PublicParameters};
     use crate::compiler::{Compiler, Prover, Verifier};
     use crate::composer::{Circuit, Composer, Constraint};
@@ -1018,11 +1022,6 @@ mod soundness_tests {
     use crate::proof_system::linearization_poly::{self, ProofEvaluations};
     use crate::proof_system::proof::{self, Proof};
     use crate::transcript::TranscriptProtocol;
-    use dusk_bls12_381::BlsScalar;
-    use ff::Field;
-    use rand::SeedableRng;
-    use rand::rngs::StdRng;
-    use rand_core::{CryptoRng, RngCore};
 
     // Simple arithmetic circuit: a + b + a*b + d + public + 1 = result
     #[derive(Default)]
@@ -1063,11 +1062,11 @@ mod soundness_tests {
     ///
     /// The proof uses:
     /// - Honest wire polynomials (circuit is satisfied at gate level)
-    /// - A RANDOM permutation polynomial z (breaking the permutation
-    ///   argument — gates are not properly wired together)
+    /// - A RANDOM permutation polynomial z (breaking the permutation argument —
+    ///   gates are not properly wired together)
     /// - RANDOM quotient polynomials (not the actual quotient)
-    /// - A FORGED `q_arith_eval` computed to balance the verification
-    ///   equation after observing `z_challenge`
+    /// - A FORGED `q_arith_eval` computed to balance the verification equation
+    ///   after observing `z_challenge`
     ///
     /// This proof is invalid (the permutation argument does not hold)
     /// but exploits the fact that selector evaluations are not bound

@@ -4,17 +4,17 @@
 //
 // Copyright (c) DUSK NETWORK. All rights reserved.
 
-use crate::composer::permutation::constants::{K1, K2, K3};
-use crate::fft::{EvaluationDomain, Evaluations, Polynomial};
-use dusk_bls12_381::BlsScalar;
-
 #[cfg(feature = "rkyv-impl")]
 use bytecheck::CheckBytes;
+use dusk_bls12_381::BlsScalar;
 #[cfg(feature = "rkyv-impl")]
 use rkyv::{
     Archive, Deserialize, Serialize,
     ser::{ScratchSpace, Serializer},
 };
+
+use crate::composer::permutation::constants::{K1, K2, K3};
+use crate::fft::{EvaluationDomain, Evaluations, Polynomial};
 
 #[derive(Debug, Eq, PartialEq, Clone)]
 #[cfg_attr(
@@ -66,6 +66,7 @@ impl ProverKey {
         let c = self.compute_quotient_term_check_one_i(z_i, l1_alpha_sq);
         a + b + c
     }
+
     // (a(x) + beta * X + gamma) (b(X) + beta * k1 * X + gamma) (o(X) + beta *
     // k2 * X + gamma)(d(X) + beta * k3 * X + gamma)z(X) * alpha
     fn compute_quotient_identity_range_check_i(
@@ -89,6 +90,7 @@ impl ProverKey {
             * z_i
             * alpha
     }
+
     // (a(x) + beta* Sigma1(X) + gamma) (b(X) + beta * Sigma2(X) + gamma) (o(X)
     // + beta * Sigma3(X) + gamma)(d(X) + beta * Sigma4(X) + gamma) Z(X.omega) *
     // alpha
@@ -118,6 +120,7 @@ impl ProverKey {
 
         -product
     }
+
     // L_1(X)[Z(X) - 1]
     fn compute_quotient_term_check_one_i(
         &self,
@@ -171,6 +174,7 @@ impl ProverKey {
         );
         &(&a + &b) + &c
     }
+
     // (a_eval + beta * z_challenge + gamma)(b_eval + beta * K1 * z_challenge +
     // gamma)(c_eval + beta * K2 * z_challenge + gamma) * alpha z(X)
     fn compute_linearizer_identity_range_check(
@@ -216,6 +220,7 @@ impl ProverKey {
         // * z_challenge + gamma)(c_eval + beta * K2 * z_challenge +
         // gamma) * alpha z(X)
     }
+
     // -(a_eval + beta * sigma_1 + gamma)(b_eval + beta * sigma_2 + gamma)
     // (c_eval + beta * sigma_3 + gamma) * beta *z_eval * alpha^2 * Sigma_4(X)
     fn compute_linearizer_copy_range_check(

@@ -9,14 +9,14 @@
 //! Use this as the only import that you need to interact
 //! with the principal data structures of the plonk library.
 
+pub use dusk_bls12_381::BlsScalar;
+pub use dusk_jubjub::{JubJubAffine, JubJubExtended, JubJubScalar};
+
+pub use crate::error::Error;
+pub use crate::proof_system::Proof;
 #[cfg(feature = "alloc")]
 pub use crate::{
     commitment_scheme::PublicParameters,
     compiler::{Compiler, PlonkVersion, Prover, Verifier},
     composer::{Circuit, Composer, Constraint, Witness, WitnessPoint},
 };
-
-pub use crate::error::Error;
-pub use crate::proof_system::Proof;
-pub use dusk_bls12_381::BlsScalar;
-pub use dusk_jubjub::{JubJubAffine, JubJubExtended, JubJubScalar};

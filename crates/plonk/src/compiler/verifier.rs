@@ -10,12 +10,11 @@ use dusk_bls12_381::BlsScalar;
 use dusk_bytes::{DeserializableSlice, Serializable};
 use merlin::Transcript;
 
+use super::{Composer, PlonkVersion};
 use crate::commitment_scheme::OpeningKey;
 use crate::error::Error;
 use crate::proof_system::{Proof, VerifierKey};
 use crate::transcript::TranscriptProtocol;
-
-use super::{Composer, PlonkVersion};
 
 /// Verify proofs of a given circuit
 pub struct Verifier {
