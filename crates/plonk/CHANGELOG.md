@@ -24,6 +24,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Update rust toolchain to stable [#859]
 - Change dependency `msgpacker`to `0.4.8`
 - Update rust toolchain to nightly 2024-10-17 (1.84.0)
+- Speed up verifier hot paths by evaluating public inputs sparsely and
+  reducing heap allocation and scalar-multiplication overhead in proof
+  verification.
 - Added `PlonkVersion::V3` and switched `PlonkVersion::current()` to `V3`.
 - Added explicit versioned proving and verification paths for
   `PlonkVersion::V2` and `PlonkVersion::V3`.
