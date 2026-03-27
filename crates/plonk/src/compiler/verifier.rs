@@ -10,12 +10,11 @@ use dusk_bls12_381::BlsScalar;
 use dusk_bytes::{DeserializableSlice, Serializable};
 use merlin::Transcript;
 
-use super::{Composer, PlonkVersion};
+use super::PlonkVersion;
 use crate::commitment_scheme::OpeningKey;
 use crate::error::Error;
 use crate::proof_system::{Proof, VerifierKey};
 use crate::transcript::TranscriptProtocol;
-
 /// Verify proofs of a given circuit
 pub struct Verifier {
     label: Vec<u8>,
@@ -222,24 +221,20 @@ impl Verifier {
             .iter()
             .for_each(|pi| transcript.append_scalar(b"pi", pi));
 
-        let dense_public_inputs = Composer::dense_public_inputs(
-            &self.public_input_indexes,
-            public_inputs,
-            self.size,
-        );
-
         match version {
             PlonkVersion::V1 => proof.verify_legacy(
                 &self.verifier_key,
                 &mut transcript,
                 &self.opening_key,
-                &dense_public_inputs,
+                &self.public_input_indexes,
+                public_inputs,
             ),
             PlonkVersion::V2 | PlonkVersion::V3 => proof.verify(
                 &self.verifier_key,
                 &mut transcript,
                 &self.opening_key,
-                &dense_public_inputs,
+                &self.public_input_indexes,
+                public_inputs,
             ),
         }
     }
