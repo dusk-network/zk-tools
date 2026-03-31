@@ -11,8 +11,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add Makefile targets for test, clippy, fmt, bench, no-std, and clean
 - Add `AGENTS.md` for AI agent orientation
-- Added more tests for low coverage parts of the code [#861]
-- Added MSRV, set to rust version `1.85` [#860]
 
 ### Changed
 
@@ -20,13 +18,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Update CI to use Makefile targets for tests and no_std builds
 - Switch CI runners to `core` self-hosted runners
 
+- Speed up verifier hot paths by evaluating public inputs sparsely and
+  reducing heap allocation and scalar-multiplication overhead in proof
+  verification.
+
+### Fixed
+
+- Hardened prover/verifier deserialization length parsing to reject
+  overflowed malformed length fields without panicking.
+
+## [0.22.0] - 2026-02-27
+
+### Added
+
+- Added more tests for low coverage parts of the code [#861]
+- Added MSRV, set to rust version `1.85` [#860]
+
+### Changed
+
 - Update rust edition to 2024 [#861]
 - Update rust toolchain to stable [#859]
 - Change dependency `msgpacker`to `0.4.8`
 - Update rust toolchain to nightly 2024-10-17 (1.84.0)
-- Speed up verifier hot paths by evaluating public inputs sparsely and
-  reducing heap allocation and scalar-multiplication overhead in proof
-  verification.
 - Added `PlonkVersion::V3` and switched `PlonkVersion::current()` to `V3`.
 - Added explicit versioned proving and verification paths for
   `PlonkVersion::V2` and `PlonkVersion::V3`.
@@ -42,8 +55,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   with checked parsing.
 - Removed unsafe transcript label transmute usage.
 - Wired transcript seeding so v3 correctly binds `s_sigma_4`.
-- Hardened prover/verifier deserialization length parsing to reject
-  overflowed malformed length fields without panicking.
 
 ## [0.21.0] - 2025-02-06
 
