@@ -103,7 +103,10 @@ pub mod wasm {
     /// Releases memory previously returned by `alloc` or `respond_from_request`.
     pub unsafe fn free(ptr: *mut u8, len: usize) {
         if !ptr.is_null() && len != 0 {
-            drop(Vec::from_raw_parts(ptr, len, len));
+            // SAFETY: the caller guarantees `ptr` and `len` came from this module.
+            unsafe {
+                drop(Vec::from_raw_parts(ptr, len, len));
+            }
         }
     }
 
@@ -120,7 +123,8 @@ pub mod wasm {
         T: Serialize,
         F: FnOnce(&[u8]) -> Result<T, String>,
     {
-        let request = core::slice::from_raw_parts(request_ptr, request_len);
+        // SAFETY: the caller guarantees the request range is valid for reads.
+        let request = unsafe { core::slice::from_raw_parts(request_ptr, request_len) };
         respond(handler(request))
     }
 

@@ -1,9 +1,14 @@
 [package]
 name = "plonkwasm"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
+rust-version = "1.94"
 license = "MPL-2.0"
 description = "WebAssembly wrapper for dusk-plonk."
+repository = "https://github.com/dusk-network/plonkweb"
+readme = "../README.md"
+keywords = ["plonk", "wasm", "zero-knowledge", "dusk"]
+categories = ["cryptography", "wasm"]
 
 [dependencies]
 dusk-bytes = "0.1"
