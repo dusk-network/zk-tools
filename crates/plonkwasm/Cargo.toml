@@ -6,9 +6,11 @@ rust-version = "1.94"
 license = "MPL-2.0"
 description = "WebAssembly wrapper for dusk-plonk."
 repository = "https://github.com/dusk-network/plonkweb"
+documentation = "https://docs.rs/plonkwasm"
 readme = "../README.md"
 keywords = ["plonk", "wasm", "zero-knowledge", "dusk"]
 categories = ["cryptography", "wasm"]
+include = ["Cargo.toml", "src/**/*.rs", "tests/**/*.rs", "../README.md"]
 
 [dependencies]
 dusk-bytes = "0.1"

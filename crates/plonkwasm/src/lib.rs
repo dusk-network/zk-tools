@@ -4,11 +4,21 @@
 //
 // Copyright (c) DUSK NETWORK. All rights reserved.
 
+//! Reusable proof and verification helpers for WebAssembly frontends built on
+//! `dusk-plonk`.
+//!
+//! The crate handles serialized prover/verifier keys, proof bytes, public input
+//! serialization, and a small JSON-oriented wasm ABI. Applications still provide
+//! the concrete circuit type at compile time.
+
+#![deny(missing_docs)]
+
 use dusk_bytes::Serializable;
 use dusk_plonk::prelude::{BlsScalar, Circuit, Error as PlonkError, Proof, Prover, Verifier};
 use rand_chacha::ChaCha20Rng;
 use rand_core::SeedableRng;
 
+/// Serialized proof data returned by [`prove`].
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ProofOutput {
     /// Serialized `dusk_plonk::Proof` bytes.
@@ -82,6 +92,7 @@ pub fn deserialize_public_inputs(public_inputs: &[u8]) -> Result<Vec<BlsScalar>,
         .collect()
 }
 
+/// Helpers for circuit-specific WebAssembly crates that expose a JavaScript ABI.
 pub mod wasm {
     use serde::Serialize;
 
@@ -101,6 +112,11 @@ pub mod wasm {
     }
 
     /// Releases memory previously returned by `alloc` or `respond_from_request`.
+    ///
+    /// # Safety
+    ///
+    /// `ptr` and `len` must describe an allocation previously returned by this
+    /// module, and the allocation must not be freed more than once.
     pub unsafe fn free(ptr: *mut u8, len: usize) {
         if !ptr.is_null() && len != 0 {
             // SAFETY: the caller guarantees `ptr` and `len` came from this module.
@@ -114,6 +130,11 @@ pub mod wasm {
     ///
     /// Circuit-specific wasm crates expose their `#[no_mangle]` functions and
     /// delegate request handling here to keep the ABI consistent.
+    ///
+    /// # Safety
+    ///
+    /// `request_ptr` and `request_len` must describe a valid readable memory
+    /// range for the duration of the call.
     pub unsafe fn respond_from_request<T, F>(
         request_ptr: *const u8,
         request_len: usize,
@@ -158,6 +179,7 @@ pub mod wasm {
         (ptr << 32) | len
     }
 
+    /// Decodes a hex-encoded 32-byte RNG seed.
     pub fn decode_seed(hex: &str) -> Result<[u8; 32], String> {
         let bytes = decode_hex(hex)?;
         bytes
@@ -165,6 +187,7 @@ pub mod wasm {
             .map_err(|bytes: Vec<u8>| format!("seed must be 32 bytes, got {}", bytes.len()))
     }
 
+    /// Encodes bytes as a lowercase hex string.
     pub fn encode_hex(bytes: &[u8]) -> String {
         const HEX: &[u8; 16] = b"0123456789abcdef";
         let mut out = String::with_capacity(bytes.len() * 2);
@@ -175,6 +198,7 @@ pub mod wasm {
         out
     }
 
+    /// Decodes a hex string, with or without a leading `0x` prefix.
     pub fn decode_hex(hex: &str) -> Result<Vec<u8>, String> {
         let hex = hex.strip_prefix("0x").unwrap_or(hex);
         if hex.len() % 2 != 0 {
