@@ -8,9 +8,8 @@ Reusable proof and verification helpers for WebAssembly frontends built on
 
 ## ✨ What It Does
 
-- Computes PLONK proofs from serialized prover keys and concrete circuit
-  values.
-- Verifies serialized proofs with serialized verifier keys and public inputs.
+- Computes PLONK proofs from deserialized prover keys and concrete circuit values.
+- Verifies serialized proofs with deserialized verifier keys and public inputs.
 - Encodes public inputs as concatenated 32-byte scalar bytes.
 - Provides a compact JSON-oriented wasm ABI for JavaScript callers.
 - Exposes an optional `wasm-rayon` feature for threaded wasm builds that need
@@ -22,14 +21,14 @@ the reusable proof plumbing.
 
 ## 🚀 Usage
 
-Use `prove` with a serialized prover key, deterministic 32-byte RNG seed, and a
-concrete circuit value:
+Use `prove` with a deserialized prover, deterministic 32-byte RNG seed, and a
+concrete circuit value. Use `verify` with a deserialized verifier:
 
 ```rust
-let output = plonkwasm::prove(&prover_key_bytes, [9; 32], &circuit)?;
+let output = plonkwasm::prove(&prover, [9; 32], &circuit)?;
 
 plonkwasm::verify(
-    &verifier_key_bytes,
+    &verifier,
     &output.proof,
     &output.public_inputs,
 )?;

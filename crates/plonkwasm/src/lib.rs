@@ -7,9 +7,9 @@
 //! Reusable proof and verification helpers for WebAssembly frontends built on
 //! `dusk-plonk`.
 //!
-//! The crate handles serialized prover/verifier keys, proof bytes, public input
-//! serialization, and a small JSON-oriented wasm ABI. Applications still provide
-//! the concrete circuit type at compile time.
+//! The crate handles deserialized prover/verifier keys, proof bytes, public
+//! input serialization, and a small JSON-oriented wasm ABI. Applications still
+//! provide the concrete circuit type at compile time.
 
 #![deny(missing_docs)]
 
@@ -27,15 +27,15 @@ pub struct ProofOutput {
     pub public_inputs: Vec<u8>,
 }
 
-/// Computes a PLONK proof for a concrete circuit using serialized prover keys.
+/// Computes a PLONK proof for a concrete circuit.
 ///
 /// The caller supplies the circuit because a wasm proof binary must link the
-/// circuit implementation at compile time.
-pub fn prove<C>(prover_key: &[u8], seed: [u8; 32], circuit: &C) -> Result<ProofOutput, String>
+/// circuit implementation at compile time. The caller owns key loading so proof
+/// calls can reuse a cached prover.
+pub fn prove<C>(prover: &Prover, seed: [u8; 32], circuit: &C) -> Result<ProofOutput, String>
 where
     C: Circuit,
 {
-    let prover = Prover::try_from_bytes(prover_key).map_err(format_plonk_error)?;
     let mut rng = ChaCha20Rng::from_seed(seed);
     let (proof, public_inputs) = prover
         .prove(&mut rng, circuit)
@@ -47,9 +47,8 @@ where
     })
 }
 
-/// Verifies a serialized PLONK proof using serialized verifier keys and public inputs.
-pub fn verify(verifier_key: &[u8], proof: &[u8], public_inputs: &[u8]) -> Result<(), String> {
-    let verifier = Verifier::try_from_bytes(verifier_key).map_err(format_plonk_error)?;
+/// Verifies a serialized PLONK proof using a cached verifier and public inputs.
+pub fn verify(verifier: &Verifier, proof: &[u8], public_inputs: &[u8]) -> Result<(), String> {
     let proof = Proof::from_bytes(
         proof
             .try_into()

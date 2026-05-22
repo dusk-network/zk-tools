@@ -54,9 +54,8 @@ fn prove_returns_proof_that_verifies() {
     let pp = PublicParameters::setup(TEST_CIRCUIT_CAPACITY, &mut rng).unwrap();
     let (prover, verifier) = Compiler::compile::<TestCircuit>(&pp, TRANSCRIPT_LABEL).unwrap();
 
-    let output = plonkwasm::prove(&prover.to_bytes(), [9; 32], &TestCircuit::new(13, 17)).unwrap();
-    let verifier_bytes = verifier.to_bytes();
-    plonkwasm::verify(&verifier_bytes, &output.proof, &output.public_inputs).unwrap();
+    let output = plonkwasm::prove(&prover, [9; 32], &TestCircuit::new(13, 17)).unwrap();
+    plonkwasm::verify(&verifier, &output.proof, &output.public_inputs).unwrap();
 }
 
 #[test]
@@ -65,8 +64,8 @@ fn verify_rejects_invalid_public_inputs() {
     let pp = PublicParameters::setup(TEST_CIRCUIT_CAPACITY, &mut rng).unwrap();
     let (prover, verifier) = Compiler::compile::<TestCircuit>(&pp, TRANSCRIPT_LABEL).unwrap();
 
-    let output = plonkwasm::prove(&prover.to_bytes(), [9; 32], &TestCircuit::new(13, 17)).unwrap();
+    let output = plonkwasm::prove(&prover, [9; 32], &TestCircuit::new(13, 17)).unwrap();
     let wrong_public_inputs = BlsScalar::from(222).to_bytes().to_vec();
 
-    assert!(plonkwasm::verify(&verifier.to_bytes(), &output.proof, &wrong_public_inputs).is_err());
+    assert!(plonkwasm::verify(&verifier, &output.proof, &wrong_public_inputs).is_err());
 }
