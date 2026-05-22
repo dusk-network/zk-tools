@@ -10,7 +10,7 @@ documentation = "https://docs.rs/plonkwasm"
 readme = "../README.md"
 keywords = ["plonk", "wasm", "zero-knowledge", "dusk"]
 categories = ["cryptography", "wasm"]
-include = ["Cargo.toml", "src/**/*.rs", "tests/**/*.rs", "../README.md"]
+include = ["Cargo.toml", "LICENSE", "src/**/*.rs", "tests/**/*.rs", "../README.md"]
 
 [dependencies]
 dusk-bytes = "0.1"
