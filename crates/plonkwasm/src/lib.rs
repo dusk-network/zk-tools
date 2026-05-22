@@ -121,7 +121,15 @@ pub mod wasm {
         F: FnOnce(&[u8]) -> Result<T, String>,
     {
         let request = core::slice::from_raw_parts(request_ptr, request_len);
-        let response = match handler(request) {
+        respond(handler(request))
+    }
+
+    /// Converts a handler result into a packed `(ptr, len)` JSON response.
+    pub fn respond<T>(result: Result<T, String>) -> u64
+    where
+        T: Serialize,
+    {
+        let response = match result {
             Ok(result) => ApiResponse {
                 ok: true,
                 result: Some(result),
