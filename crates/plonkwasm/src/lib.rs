@@ -73,7 +73,7 @@ pub fn serialize_public_inputs(public_inputs: &[BlsScalar]) -> Vec<u8> {
 
 /// Deserializes public inputs from concatenated 32-byte scalar encodings.
 pub fn deserialize_public_inputs(public_inputs: &[u8]) -> Result<Vec<BlsScalar>, String> {
-    if public_inputs.len() % 32 != 0 {
+    if !public_inputs.len().is_multiple_of(32) {
         return Err(format!(
             "public inputs length must be a multiple of 32 bytes, got {}",
             public_inputs.len()
@@ -201,7 +201,7 @@ pub mod wasm {
     /// Decodes a hex string, with or without a leading `0x` prefix.
     pub fn decode_hex(hex: &str) -> Result<Vec<u8>, String> {
         let hex = hex.strip_prefix("0x").unwrap_or(hex);
-        if hex.len() % 2 != 0 {
+        if !hex.len().is_multiple_of(2) {
             return Err("hex string must have even length".to_string());
         }
 
