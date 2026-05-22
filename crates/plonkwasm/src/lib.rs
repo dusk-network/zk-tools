@@ -5,7 +5,7 @@
 // Copyright (c) DUSK NETWORK. All rights reserved.
 
 use dusk_bytes::Serializable;
-use dusk_plonk::prelude::{BlsScalar, Circuit, Error as PlonkError, Prover};
+use dusk_plonk::prelude::{BlsScalar, Circuit, Error as PlonkError, Proof, Prover, Verifier};
 use rand_chacha::ChaCha20Rng;
 use rand_core::SeedableRng;
 
@@ -37,11 +37,48 @@ where
     })
 }
 
+/// Verifies a serialized PLONK proof using serialized verifier keys and public inputs.
+pub fn verify(verifier_key: &[u8], proof: &[u8], public_inputs: &[u8]) -> Result<(), String> {
+    let verifier = Verifier::try_from_bytes(verifier_key).map_err(format_plonk_error)?;
+    let proof = Proof::from_bytes(
+        proof
+            .try_into()
+            .map_err(|_| format!("invalid proof length: {}", proof.len()))?,
+    )
+    .map_err(|err| format!("{err:?}"))?;
+    let public_inputs = deserialize_public_inputs(public_inputs)?;
+
+    verifier
+        .verify(&proof, &public_inputs)
+        .map_err(format_plonk_error)
+}
+
 /// Serializes public inputs in the same order returned by `dusk-plonk`.
 pub fn serialize_public_inputs(public_inputs: &[BlsScalar]) -> Vec<u8> {
     public_inputs
         .iter()
         .flat_map(|input| input.to_bytes())
+        .collect()
+}
+
+/// Deserializes public inputs from concatenated 32-byte scalar encodings.
+pub fn deserialize_public_inputs(public_inputs: &[u8]) -> Result<Vec<BlsScalar>, String> {
+    if public_inputs.len() % 32 != 0 {
+        return Err(format!(
+            "public inputs length must be a multiple of 32 bytes, got {}",
+            public_inputs.len()
+        ));
+    }
+
+    public_inputs
+        .chunks_exact(32)
+        .map(|chunk| {
+            let bytes: [u8; 32] = chunk
+                .try_into()
+                .map_err(|_| "public input chunk must be 32 bytes".to_string())?;
+            Option::<BlsScalar>::from(BlsScalar::from_bytes(&bytes))
+                .ok_or_else(|| "invalid public input scalar encoding".to_string())
+        })
         .collect()
 }
 

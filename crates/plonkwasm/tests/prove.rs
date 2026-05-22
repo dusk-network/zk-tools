@@ -4,10 +4,8 @@
 //
 // Copyright (c) DUSK NETWORK. All rights reserved.
 
-use dusk_bytes::Serializable;
 use dusk_plonk::prelude::{
-    BlsScalar, Circuit, Compiler, Composer, Constraint, Error as PlonkError, Proof,
-    PublicParameters, Verifier,
+    BlsScalar, Circuit, Compiler, Composer, Constraint, Error as PlonkError, PublicParameters,
 };
 use rand_chacha::ChaCha20Rng;
 use rand_core::SeedableRng;
@@ -57,17 +55,18 @@ fn prove_returns_proof_that_verifies() {
     let (prover, verifier) = Compiler::compile::<TestCircuit>(&pp, TRANSCRIPT_LABEL).unwrap();
 
     let output = plonkwasm::prove(&prover.to_bytes(), [9; 32], &TestCircuit::new(13, 17)).unwrap();
-    let proof = Proof::from_bytes(output.proof.as_slice().try_into().unwrap()).unwrap();
-    let public_inputs = output
-        .public_inputs
-        .chunks_exact(32)
-        .map(|chunk| {
-            let bytes: [u8; 32] = chunk.try_into().unwrap();
-            Option::<BlsScalar>::from(BlsScalar::from_bytes(&bytes)).unwrap()
-        })
-        .collect::<Vec<_>>();
-
     let verifier_bytes = verifier.to_bytes();
-    let verifier = Verifier::try_from_bytes(&verifier_bytes).unwrap();
-    verifier.verify(&proof, &public_inputs).unwrap();
+    plonkwasm::verify(&verifier_bytes, &output.proof, &output.public_inputs).unwrap();
+}
+
+#[test]
+fn verify_rejects_invalid_public_inputs() {
+    let mut rng = ChaCha20Rng::from_seed([7; 32]);
+    let pp = PublicParameters::setup(TEST_CIRCUIT_CAPACITY, &mut rng).unwrap();
+    let (prover, verifier) = Compiler::compile::<TestCircuit>(&pp, TRANSCRIPT_LABEL).unwrap();
+
+    let output = plonkwasm::prove(&prover.to_bytes(), [9; 32], &TestCircuit::new(13, 17)).unwrap();
+    let wrong_public_inputs = BlsScalar::from(222).to_bytes().to_vec();
+
+    assert!(plonkwasm::verify(&verifier.to_bytes(), &output.proof, &wrong_public_inputs).is_err());
 }
