@@ -1,5 +1,10 @@
 # PlonkWasm
 
+[![Crates.io](https://img.shields.io/crates/v/plonkwasm.svg)](https://crates.io/crates/plonkwasm)
+[![docs.rs](https://img.shields.io/docsrs/plonkwasm.svg)](https://docs.rs/plonkwasm)
+[![CI](https://github.com/dusk-network/plonkweb/actions/workflows/ci.yml/badge.svg)](https://github.com/dusk-network/plonkweb/actions/workflows/ci.yml)
+[![Repository](https://img.shields.io/badge/github-plonkweb-blueviolet?logo=github)](https://github.com/dusk-network/plonkweb)
+
 Reusable proof and verification helpers for WebAssembly frontends built on
 [`dusk-plonk`](https://crates.io/crates/dusk-plonk).
 
