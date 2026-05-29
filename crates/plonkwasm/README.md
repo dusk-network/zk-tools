@@ -17,6 +17,8 @@ Reusable proof and verification helpers for WebAssembly frontends built on
 - Verifies serialized proofs with deserialized verifier keys and public inputs.
 - Encodes public inputs as concatenated 32-byte scalar bytes.
 - Provides a compact JSON-oriented wasm ABI for JavaScript callers.
+- Lets consumers select the `dusk-plonk` BLS backend with either
+  `bls-backend-dusk` or `bls-backend-blst`.
 - Exposes an optional `wasm-rayon` feature for threaded wasm builds that need
   `dusk-plonk/std`.
 
@@ -25,6 +27,15 @@ binary. PLONK circuits are compiled into that binary, while `plonkwasm` supplies
 the reusable proof plumbing.
 
 ## 🚀 Usage
+
+Select exactly one BLS backend when depending on this crate:
+
+```toml
+[dependencies]
+plonkwasm = { version = "0.1", default-features = false, features = ["bls-backend-blst"] }
+```
+
+Use `bls-backend-dusk` instead of `bls-backend-blst` to use the Dusk backend.
 
 Use `prove` with a deserialized prover, deterministic 32-byte RNG seed, and a
 concrete circuit value. Use `verify` with a deserialized verifier:
