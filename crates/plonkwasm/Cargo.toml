@@ -14,7 +14,7 @@ include = ["Cargo.toml", "LICENSE", "README.md", "src/**/*.rs", "tests/**/*.rs"]
 
 [dependencies]
 dusk-bytes = "0.1"
-dusk-plonk = { version = "=0.22.0", default-features = false, features = ["alloc"] }
+dusk-plonk = { version = "=0.23.0", default-features = false, features = ["alloc"] }
 rand_chacha = "0.3"
 rand_core = "0.6"
 serde = { version = "1", features = ["derive"] }
@@ -22,6 +22,8 @@ serde_json = "1"
 
 [features]
 default = []
+bls-backend-blst = ["dusk-plonk/bls-backend-blst"]
+bls-backend-dusk = ["dusk-plonk/bls-backend-dusk"]
 # dusk-plonk gates every `par_iter` / rayon code path behind `cfg(feature = "std")`
 # (the `rayon` name in dusk-plonk's manifest is only the optional crate dep, not a
 # feature that toggles parallel code). Enabling `dusk-plonk/std` is therefore
