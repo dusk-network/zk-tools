@@ -32,7 +32,7 @@ Select exactly one BLS backend when depending on this crate:
 
 ```toml
 [dependencies]
-plonkwasm = { version = "0.1", default-features = false, features = ["bls-backend-blst"] }
+plonkwasm = { version = "0.2", default-features = false, features = ["bls-backend-blst"] }
 ```
 
 Use `bls-backend-dusk` instead of `bls-backend-blst` to use the Dusk backend.
