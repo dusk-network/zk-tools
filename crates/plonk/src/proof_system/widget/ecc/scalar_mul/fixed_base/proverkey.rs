@@ -4,18 +4,18 @@
 //
 // Copyright (c) DUSK NETWORK. All rights reserved.
 
-use crate::fft::{Evaluations, Polynomial};
-use crate::proof_system::linearization_poly::ProofEvaluations;
-use dusk_bls12_381::BlsScalar;
-use dusk_jubjub::EDWARDS_D;
-
 #[cfg(feature = "rkyv-impl")]
 use bytecheck::CheckBytes;
+use dusk_bls12_381::BlsScalar;
+use dusk_jubjub::EDWARDS_D;
 #[cfg(feature = "rkyv-impl")]
 use rkyv::{
     Archive, Deserialize, Serialize,
     ser::{ScratchSpace, Serializer},
 };
+
+use crate::fft::{Evaluations, Polynomial};
+use crate::proof_system::linearization_poly::ProofEvaluations;
 
 #[derive(Debug, Eq, PartialEq, Clone)]
 #[cfg_attr(

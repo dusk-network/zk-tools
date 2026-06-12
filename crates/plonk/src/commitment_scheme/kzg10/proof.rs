@@ -4,8 +4,9 @@
 //
 // Copyright (c) DUSK NETWORK. All rights reserved.
 
-use super::Commitment;
 use dusk_bls12_381::BlsScalar;
+
+use super::Commitment;
 
 /// Proof that a polynomial `p` was correctly evaluated at a point `z`
 /// producing the evaluated point p(z).
@@ -111,8 +112,9 @@ pub(crate) mod alloc {
 
 #[cfg(all(test, feature = "alloc"))]
 mod tests {
-    use super::*;
     use dusk_bls12_381::{G1Affine, G1Projective};
+
+    use super::*;
 
     #[test]
     fn aggregate_proof_flatten_is_linear_combination() {

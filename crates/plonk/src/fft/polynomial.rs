@@ -7,21 +7,22 @@
 //! This module contains an implementation of a polynomial in coefficient form
 //! Where each coefficient is represented using a position in the underlying
 //! vector.
-use super::{EvaluationDomain, Evaluations};
-use crate::error::Error;
-use crate::util;
 use alloc::vec::Vec;
 use core::ops::{Add, AddAssign, Deref, DerefMut, Mul, Neg, Sub, SubAssign};
-use dusk_bls12_381::BlsScalar;
-use dusk_bytes::{DeserializableSlice, Serializable};
 
 #[cfg(feature = "rkyv-impl")]
 use bytecheck::CheckBytes;
+use dusk_bls12_381::BlsScalar;
+use dusk_bytes::{DeserializableSlice, Serializable};
 #[cfg(feature = "rkyv-impl")]
 use rkyv::{
     Archive, Deserialize, Serialize,
     ser::{ScratchSpace, Serializer},
 };
+
+use super::{EvaluationDomain, Evaluations};
+use crate::error::Error;
+use crate::util;
 
 /// Represents a polynomial in coeffiient form.
 #[derive(Debug, Eq, PartialEq, Clone)]
@@ -52,8 +53,8 @@ impl DerefMut for Polynomial {
 }
 
 impl IntoIterator for Polynomial {
-    type Item = BlsScalar;
     type IntoIter = <Vec<BlsScalar> as IntoIterator>::IntoIter;
+    type Item = BlsScalar;
 
     fn into_iter(self) -> Self::IntoIter {
         self.coeffs.into_iter()
@@ -438,10 +439,11 @@ impl<'a> Sub<&'a BlsScalar> for &Polynomial {
 #[cfg(feature = "std")]
 #[cfg(test)]
 mod test {
-    use super::*;
     use ff::Field;
     use rand::rngs::StdRng;
     use rand_core::{CryptoRng, RngCore, SeedableRng};
+
+    use super::*;
 
     impl Polynomial {
         /// Outputs a polynomial of degree `d` where each coefficient is sampled

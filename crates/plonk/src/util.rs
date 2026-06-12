@@ -5,6 +5,7 @@
 // Copyright (c) DUSK NETWORK. All rights reserved.
 
 use alloc::vec::Vec;
+
 use dusk_bls12_381::{
     BlsScalar, G1Affine, G1Projective, G2Affine, G2Projective,
 };

@@ -12,11 +12,10 @@
 //! This allows us to perform polynomial operations in O(n)
 //! by performing an O(n log n) FFT over such a domain.
 
-use dusk_bls12_381::BlsScalar;
-use dusk_bytes::{DeserializableSlice, Serializable};
-
 #[cfg(feature = "rkyv-impl")]
 use bytecheck::CheckBytes;
+use dusk_bls12_381::BlsScalar;
+use dusk_bytes::{DeserializableSlice, Serializable};
 #[cfg(feature = "rkyv-impl")]
 use rkyv::{
     Archive, Deserialize, Serialize,
@@ -112,6 +111,7 @@ pub(crate) mod alloc {
     #[rustfmt::skip]
     use ::alloc::vec::Vec;
     use core::ops::MulAssign;
+
     use dusk_bls12_381::{GENERATOR, ROOT_OF_UNITY, TWO_ADACITY};
     #[cfg(feature = "std")]
     use rayon::prelude::*;
@@ -385,6 +385,7 @@ pub(crate) mod alloc {
 
     impl Iterator for Elements {
         type Item = BlsScalar;
+
         fn next(&mut self) -> Option<BlsScalar> {
             if self.cur_pow == self.domain.size {
                 None

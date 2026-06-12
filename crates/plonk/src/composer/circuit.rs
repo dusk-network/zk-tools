@@ -7,9 +7,8 @@
 #[cfg(feature = "alloc")]
 use alloc::vec::Vec;
 
-use crate::prelude::{Composer, Error};
-
 use super::compress::CompressedCircuit;
+use crate::prelude::{Composer, Error};
 
 /// Circuit implementation that can be proved by a Composer
 ///

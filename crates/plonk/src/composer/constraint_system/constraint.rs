@@ -4,8 +4,9 @@
 //
 // Copyright (c) DUSK NETWORK. All rights reserved.
 
-use crate::prelude::{Composer, Witness};
 use dusk_bls12_381::BlsScalar;
+
+use crate::prelude::{Composer, Witness};
 
 /// Selectors used to address a coefficient inside of a [`Constraint`]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -94,7 +95,6 @@ impl AsRef<[BlsScalar]> for Constraint {
 impl Constraint {
     /// Internal coefficients count.
     pub const COEFFICIENTS: usize = 12;
-
     /// Internal witnesses count.
     pub const WITNESSES: usize = 4;
 
