@@ -5,11 +5,10 @@
 // Copyright (c) DUSK NETWORK. All rights reserved.
 
 //! Module containing the representation of a Commitment to a Polynomial.
-use dusk_bls12_381::{G1Affine, G1Projective};
-use dusk_bytes::{DeserializableSlice, Serializable};
-
 #[cfg(feature = "rkyv-impl")]
 use bytecheck::CheckBytes;
+use dusk_bls12_381::{G1Affine, G1Projective};
+use dusk_bytes::{DeserializableSlice, Serializable};
 #[cfg(feature = "rkyv-impl")]
 use rkyv::{
     Archive, Deserialize, Serialize,

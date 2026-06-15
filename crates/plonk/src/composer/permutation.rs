@@ -4,13 +4,15 @@
 //
 // Copyright (c) DUSK NETWORK. All rights reserved.
 
-use crate::composer::{WireData, Witness};
-use crate::fft::{EvaluationDomain, Polynomial};
 use alloc::vec::Vec;
+
 use constants::{K1, K2, K3};
 use dusk_bls12_381::BlsScalar;
 use hashbrown::HashMap;
 use itertools::izip;
+
+use crate::composer::{WireData, Witness};
+use crate::fft::{EvaluationDomain, Polynomial};
 
 pub(crate) mod constants;
 
@@ -300,11 +302,12 @@ impl Permutation {
 #[cfg(feature = "std")]
 #[cfg(test)]
 mod test {
-    use super::*;
-    use crate::fft::Polynomial;
     use dusk_bls12_381::BlsScalar;
     use ff::Field;
     use rand_core::OsRng;
+
+    use super::*;
+    use crate::fft::Polynomial;
 
     #[allow(dead_code)]
     fn compute_fast_permutation_poly(

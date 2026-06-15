@@ -7,13 +7,12 @@
 //! A Proof stores the commitments to all of the elements that
 //! are needed to univocally identify a prove of some statement.
 
-use super::linearization_poly::ProofEvaluations;
-use crate::commitment_scheme::Commitment;
-
 use dusk_bytes::{DeserializableSlice, Serializable};
-
 #[cfg(feature = "std")]
 use rayon::prelude::*;
+
+use super::linearization_poly::ProofEvaluations;
+use crate::commitment_scheme::Commitment;
 
 // Number of (unshifted) polynomials opened at `z`, excluding the linearization
 // polynomial `r(X)`.
@@ -30,14 +29,15 @@ const V_MAX_DEGREE: usize = 11;
 const V_MAX_DEGREE_LEGACY: usize = 7;
 
 #[cfg(feature = "rkyv-impl")]
-use crate::util::check_field;
-#[cfg(feature = "rkyv-impl")]
 use bytecheck::{CheckBytes, StructCheckError};
 #[cfg(feature = "rkyv-impl")]
 use rkyv::{
     Archive, Deserialize, Serialize,
     ser::{ScratchSpace, Serializer},
 };
+
+#[cfg(feature = "rkyv-impl")]
+use crate::util::check_field;
 
 /// A Proof is a composition of `Commitment`s to the Witness, Permutation,
 /// Quotient, Shifted and Opening polynomials as well as the
@@ -198,19 +198,16 @@ impl Serializable<{ 11 * Commitment::SIZE + ProofEvaluations::SIZE }>
 #[allow(unused_imports)]
 pub(crate) mod alloc {
     use super::*;
-    use crate::{
-        commitment_scheme::{AggregateProof, OpeningKey},
-        error::Error,
-        fft::EvaluationDomain,
-        proof_system::widget::VerifierKey,
-        transcript::TranscriptProtocol,
-        util::batch_inversion,
-    };
+    use crate::commitment_scheme::{AggregateProof, OpeningKey};
+    use crate::error::Error;
+    use crate::fft::EvaluationDomain;
+    use crate::proof_system::widget::VerifierKey;
+    use crate::transcript::TranscriptProtocol;
+    use crate::util::batch_inversion;
     #[rustfmt::skip]
     use ::alloc::vec::Vec;
-    use dusk_bls12_381::{
-        BlsScalar, G1Affine, G1Projective, multiscalar_mul::msm_variable_base,
-    };
+    use dusk_bls12_381::multiscalar_mul::msm_variable_base;
+    use dusk_bls12_381::{BlsScalar, G1Affine, G1Projective};
     use merlin::Transcript;
     #[cfg(feature = "std")]
     use rayon::prelude::*;
@@ -223,6 +220,7 @@ pub(crate) mod alloc {
             verifier_key: &VerifierKey,
             transcript: &mut Transcript,
             opening_key: &OpeningKey,
+            public_input_indexes: &[usize],
             pub_inputs: &[BlsScalar],
         ) -> Result<(), Error> {
             let domain = EvaluationDomain::new(verifier_key.n)?;
@@ -344,8 +342,12 @@ pub(crate) mod alloc {
                 .0;
 
             // Evaluate public inputs
-            let pi_eval =
-                compute_barycentric_eval(pub_inputs, &z_challenge, &domain);
+            let pi_eval = compute_barycentric_eval_sparse(
+                public_input_indexes,
+                pub_inputs,
+                &z_challenge,
+                &domain,
+            );
 
             // Compute r_0
             let r_0_eval = pi_eval
@@ -364,24 +366,28 @@ pub(crate) mod alloc {
                     * self.evaluations.z_eval;
 
             // Coefficients to compute [E]_1
-            let mut v_coeffs_E = vec![v_challenge];
+            let mut v_coeffs_E = [BlsScalar::zero(); V_MAX_DEGREE + 3];
+            v_coeffs_E[0] = v_challenge;
 
-            // Compute the powers of the v_challenge
+            // Compute the powers of the v_challenge.
             for i in 1..V_MAX_DEGREE {
-                v_coeffs_E.push(v_coeffs_E[i - 1] * v_challenge);
+                v_coeffs_E[i] = v_coeffs_E[i - 1] * v_challenge;
             }
 
-            // Compute the powers of the v_challenge multiplied by u_challenge
-            v_coeffs_E.push(v_w_challenge * u_challenge);
-            v_coeffs_E.push(v_coeffs_E[V_MAX_DEGREE] * v_w_challenge);
-            v_coeffs_E.push(v_coeffs_E[V_MAX_DEGREE + 1] * v_w_challenge);
+            // Compute the powers of the v_challenge multiplied by
+            // u_challenge.
+            v_coeffs_E[V_MAX_DEGREE] = v_w_challenge * u_challenge;
+            v_coeffs_E[V_MAX_DEGREE + 1] =
+                v_coeffs_E[V_MAX_DEGREE] * v_w_challenge;
+            v_coeffs_E[V_MAX_DEGREE + 2] =
+                v_coeffs_E[V_MAX_DEGREE + 1] * v_w_challenge;
 
             // Evaluations to compute [E]_1
             //
             // IMPORTANT: Ordering must match the prover's batched opening at `z`
             // (`CommitKey::compute_aggregate_witness([...])`) and the verifier's
             // commitment list below.
-            let E_evals = vec![
+            let E_evals = [
                 // Unshifted openings at z
                 self.evaluations.a_eval,
                 self.evaluations.b_eval,
@@ -411,10 +417,17 @@ pub(crate) mod alloc {
                 .sum();
             E_scalar += -r_0_eval + (u_challenge * self.evaluations.z_eval);
 
-            // We group all the remaining scalar multiplications in the
-            // verification process, with the purpose of
-            // parallelizing them
-            let scalarmuls_points = vec![
+            let mut f_scalars = [BlsScalar::zero(); V_MAX_DEGREE];
+            f_scalars.clone_from_slice(&v_coeffs_E[..V_MAX_DEGREE]);
+
+            // As we include the shifted coefficients when computing [F]_1,
+            // we group them to save scalar multiplications when multiplying
+            // by [a]_1, [b]_1, and [d]_1.
+            f_scalars[0] += v_coeffs_E[V_MAX_DEGREE];
+            f_scalars[1] += v_coeffs_E[V_MAX_DEGREE + 1];
+            f_scalars[3] += v_coeffs_E[V_MAX_DEGREE + 2];
+
+            let f_points = [
                 // Unshifted openings at z
                 self.a_comm.0,
                 self.b_comm.0,
@@ -429,53 +442,16 @@ pub(crate) mod alloc {
                 verifier_key.arithmetic.q_c.0,
                 verifier_key.arithmetic.q_l.0,
                 verifier_key.arithmetic.q_r.0,
-                // Commitment to generator G for [E]_1
-                opening_key.g,
-                // Opening proof commitments
-                self.w_z_chall_w_comm.0,
-                self.w_z_chall_comm.0,
-                self.w_z_chall_w_comm.0,
             ];
-
-            let mut scalarmuls_scalars = v_coeffs_E[..V_MAX_DEGREE].to_vec();
-
-            // As we include the shifted coefficients when computing [F]_1,
-            // we group them to save scalar multiplications when multiplying
-            // by [a]_1, [b]_1, and [d]_1
-            scalarmuls_scalars[0] += v_coeffs_E[V_MAX_DEGREE];
-            scalarmuls_scalars[1] += v_coeffs_E[V_MAX_DEGREE + 1];
-            scalarmuls_scalars[3] += v_coeffs_E[V_MAX_DEGREE + 2];
-
-            scalarmuls_scalars.push(E_scalar);
-            scalarmuls_scalars.push(u_challenge);
-            scalarmuls_scalars.push(z_challenge);
-            scalarmuls_scalars
-                .push(u_challenge * z_challenge * domain.group_gen);
-
-            // Compute the scalar multiplications in single-core
-            #[cfg(not(feature = "std"))]
-            let scalarmuls: Vec<G1Projective> = scalarmuls_points
-                .iter()
-                .zip(scalarmuls_scalars.iter())
-                .map(|(point, scalar)| point * scalar)
-                .collect();
-
-            // Compute the scalar multiplications in multi-core
-            #[cfg(feature = "std")]
-            let scalarmuls: Vec<G1Projective> = scalarmuls_points
-                .par_iter()
-                .zip(scalarmuls_scalars.par_iter())
-                .map(|(point, scalar)| point * scalar)
-                .collect();
 
             // [F]_1 = [D]_1 + (v)[a]_1 + (v^2)[b]_1 + (v^3)[c]_1 + (v^4)[d]_1 +
             // + (v^5)[s_sigma_1]_1 + (v^6)[s_sigma_2]_1 + (v^7)[s_sigma_3]_1 +
             // + (u * v_w)[a]_1 + (u * v_w^2)[b]_1 + (u * v_w^3)[d]_1
-            let mut F: G1Projective = scalarmuls[..V_MAX_DEGREE].iter().sum();
+            let mut F = msm_variable_base(&f_points, &f_scalars);
             F += D;
 
             // [E]_1 = E * G
-            let E = scalarmuls[V_MAX_DEGREE];
+            let E = opening_key.g * E_scalar;
 
             // Compute the G_1 element of the first pairing:
             // [W_z]_1 + u * [W_zw]_1
@@ -483,13 +459,17 @@ pub(crate) mod alloc {
             // Note that we negate this value to be able to subtract
             // the pairings later on, using the multi Miller loop
             let left = G1Affine::from(
-                -(self.w_z_chall_comm.0 + scalarmuls[V_MAX_DEGREE + 1]),
+                -(self.w_z_chall_comm.0
+                    + (self.w_z_chall_w_comm.0 * u_challenge)),
             );
 
             // Compute the G_1 element of the second pairing:
             // z * [W_z]_1 + (u * z * w) * [W_zw]_1 + [F]_1 - [E]_1
             let right = G1Affine::from(
-                scalarmuls[V_MAX_DEGREE + 2] + scalarmuls[V_MAX_DEGREE + 3] + F
+                (self.w_z_chall_comm.0 * z_challenge)
+                    + (self.w_z_chall_w_comm.0
+                        * (u_challenge * z_challenge * domain.group_gen))
+                    + F
                     - E,
             );
 
@@ -517,6 +497,7 @@ pub(crate) mod alloc {
             verifier_key: &VerifierKey,
             transcript: &mut Transcript,
             opening_key: &OpeningKey,
+            public_input_indexes: &[usize],
             pub_inputs: &[BlsScalar],
         ) -> Result<(), Error> {
             let domain = EvaluationDomain::new(verifier_key.n)?;
@@ -638,8 +619,12 @@ pub(crate) mod alloc {
                 .0;
 
             // Evaluate public inputs
-            let pi_eval =
-                compute_barycentric_eval(pub_inputs, &z_challenge, &domain);
+            let pi_eval = compute_barycentric_eval_sparse(
+                public_input_indexes,
+                pub_inputs,
+                &z_challenge,
+                &domain,
+            );
 
             // Compute r_0
             let r_0_eval = pi_eval
@@ -658,24 +643,27 @@ pub(crate) mod alloc {
                     * self.evaluations.z_eval;
 
             // Coefficients to compute [E]_1
-            let mut v_coeffs_E = vec![v_challenge];
+            let mut v_coeffs_E = [BlsScalar::zero(); V_MAX_DEGREE_LEGACY + 3];
+            v_coeffs_E[0] = v_challenge;
 
-            // Compute the powers of the v_challenge
+            // Compute the powers of the v_challenge.
             for i in 1..V_MAX_DEGREE_LEGACY {
-                v_coeffs_E.push(v_coeffs_E[i - 1] * v_challenge);
+                v_coeffs_E[i] = v_coeffs_E[i - 1] * v_challenge;
             }
 
-            // Compute the powers of the v_challenge multiplied by u_challenge
-            v_coeffs_E.push(v_w_challenge * u_challenge);
-            v_coeffs_E.push(v_coeffs_E[V_MAX_DEGREE_LEGACY] * v_w_challenge);
-            v_coeffs_E
-                .push(v_coeffs_E[V_MAX_DEGREE_LEGACY + 1] * v_w_challenge);
+            // Compute the powers of the v_challenge multiplied by
+            // u_challenge.
+            v_coeffs_E[V_MAX_DEGREE_LEGACY] = v_w_challenge * u_challenge;
+            v_coeffs_E[V_MAX_DEGREE_LEGACY + 1] =
+                v_coeffs_E[V_MAX_DEGREE_LEGACY] * v_w_challenge;
+            v_coeffs_E[V_MAX_DEGREE_LEGACY + 2] =
+                v_coeffs_E[V_MAX_DEGREE_LEGACY + 1] * v_w_challenge;
 
             // Evaluations to compute [E]_1
             //
             // IMPORTANT: Ordering must match the legacy prover's batched
             // opening at `z` (pre-soundness-fix).
-            let E_evals = vec![
+            let E_evals = [
                 self.evaluations.a_eval,
                 self.evaluations.b_eval,
                 self.evaluations.c_eval,
@@ -698,10 +686,17 @@ pub(crate) mod alloc {
                 .sum();
             E_scalar += -r_0_eval + (u_challenge * self.evaluations.z_eval);
 
-            // We group all the remaining scalar multiplications in the
-            // verification process, with the purpose of
-            // parallelizing them
-            let scalarmuls_points = vec![
+            let mut f_scalars = [BlsScalar::zero(); V_MAX_DEGREE_LEGACY];
+            f_scalars.clone_from_slice(&v_coeffs_E[..V_MAX_DEGREE_LEGACY]);
+
+            // As we include the shifted coefficients when computing [F]_1,
+            // we group them to save scalar multiplications when multiplying
+            // by [a]_1, [b]_1, and [d]_1.
+            f_scalars[0] += v_coeffs_E[V_MAX_DEGREE_LEGACY];
+            f_scalars[1] += v_coeffs_E[V_MAX_DEGREE_LEGACY + 1];
+            f_scalars[3] += v_coeffs_E[V_MAX_DEGREE_LEGACY + 2];
+
+            let f_points = [
                 self.a_comm.0,
                 self.b_comm.0,
                 self.c_comm.0,
@@ -709,53 +704,16 @@ pub(crate) mod alloc {
                 verifier_key.permutation.s_sigma_1.0,
                 verifier_key.permutation.s_sigma_2.0,
                 verifier_key.permutation.s_sigma_3.0,
-                opening_key.g,
-                self.w_z_chall_w_comm.0,
-                self.w_z_chall_comm.0,
-                self.w_z_chall_w_comm.0,
             ];
-
-            let mut scalarmuls_scalars =
-                v_coeffs_E[..V_MAX_DEGREE_LEGACY].to_vec();
-
-            // As we include the shifted coefficients when computing [F]_1,
-            // we group them to save scalar multiplications when multiplying
-            // by [a]_1, [b]_1, and [d]_1
-            scalarmuls_scalars[0] += v_coeffs_E[V_MAX_DEGREE_LEGACY];
-            scalarmuls_scalars[1] += v_coeffs_E[V_MAX_DEGREE_LEGACY + 1];
-            scalarmuls_scalars[3] += v_coeffs_E[V_MAX_DEGREE_LEGACY + 2];
-
-            scalarmuls_scalars.push(E_scalar);
-            scalarmuls_scalars.push(u_challenge);
-            scalarmuls_scalars.push(z_challenge);
-            scalarmuls_scalars
-                .push(u_challenge * z_challenge * domain.group_gen);
-
-            // Compute the scalar multiplications in single-core
-            #[cfg(not(feature = "std"))]
-            let scalarmuls: Vec<G1Projective> = scalarmuls_points
-                .iter()
-                .zip(scalarmuls_scalars.iter())
-                .map(|(point, scalar)| point * scalar)
-                .collect();
-
-            // Compute the scalar multiplications in multi-core
-            #[cfg(feature = "std")]
-            let scalarmuls: Vec<G1Projective> = scalarmuls_points
-                .par_iter()
-                .zip(scalarmuls_scalars.par_iter())
-                .map(|(point, scalar)| point * scalar)
-                .collect();
 
             // [F]_1 = [D]_1 + (v)[a]_1 + (v^2)[b]_1 + (v^3)[c]_1 + (v^4)[d]_1 +
             // + (v^5)[s_sigma_1]_1 + (v^6)[s_sigma_2]_1 + (v^7)[s_sigma_3]_1 +
             // + (u * v_w)[a]_1 + (u * v_w^2)[b]_1 + (u * v_w^3)[d]_1
-            let mut F: G1Projective =
-                scalarmuls[..V_MAX_DEGREE_LEGACY].iter().sum();
+            let mut F = msm_variable_base(&f_points, &f_scalars);
             F += D;
 
             // [E]_1 = E * G
-            let E = scalarmuls[V_MAX_DEGREE_LEGACY];
+            let E = opening_key.g * E_scalar;
 
             // Compute the G_1 element of the first pairing:
             // [W_z]_1 + u * [W_zw]_1
@@ -763,14 +721,16 @@ pub(crate) mod alloc {
             // Note that we negate this value to be able to subtract
             // the pairings later on, using the multi Miller loop
             let left = G1Affine::from(
-                -(self.w_z_chall_comm.0 + scalarmuls[V_MAX_DEGREE_LEGACY + 1]),
+                -(self.w_z_chall_comm.0
+                    + (self.w_z_chall_w_comm.0 * u_challenge)),
             );
 
             // Compute the G_1 element of the second pairing:
             // z * [W_z]_1 + (u * z * w) * [W_zw]_1 + [F]_1 - [E]_1
             let right = G1Affine::from(
-                scalarmuls[V_MAX_DEGREE_LEGACY + 2]
-                    + scalarmuls[V_MAX_DEGREE_LEGACY + 3]
+                (self.w_z_chall_comm.0 * z_challenge)
+                    + (self.w_z_chall_w_comm.0
+                        * (u_challenge * z_challenge * domain.group_gen))
                     + F
                     - E,
             );
@@ -947,14 +907,58 @@ pub(crate) mod alloc {
 
         result * numerator
     }
+
+    pub(crate) fn compute_barycentric_eval_sparse(
+        indexes: &[usize],
+        evaluations: &[BlsScalar],
+        point: &BlsScalar,
+        domain: &EvaluationDomain,
+    ) -> BlsScalar {
+        if indexes.is_empty() {
+            return BlsScalar::zero();
+        }
+
+        let numerator = (point.pow(&[domain.size() as u64, 0, 0, 0])
+            - BlsScalar::one())
+            * domain.size_inv;
+
+        let non_zero_evaluations: Vec<_> = indexes
+            .iter()
+            .copied()
+            .zip(evaluations.iter().copied())
+            .filter(|(_, evaluation)| evaluation != &BlsScalar::zero())
+            .collect();
+
+        if non_zero_evaluations.is_empty() {
+            return BlsScalar::zero();
+        }
+
+        let mut denominators: Vec<BlsScalar> = non_zero_evaluations
+            .iter()
+            .map(|(index, _)| {
+                (domain.group_gen_inv.pow(&[*index as u64, 0, 0, 0]) * point)
+                    - BlsScalar::one()
+            })
+            .collect();
+        batch_inversion(&mut denominators);
+
+        let result: BlsScalar = non_zero_evaluations
+            .iter()
+            .zip(denominators.iter())
+            .map(|((_, evaluation), denominator)| *denominator * *evaluation)
+            .sum();
+
+        result * numerator
+    }
 }
 
 #[cfg(test)]
 mod proof_tests {
-    use super::*;
     use dusk_bls12_381::BlsScalar;
     use ff::Field;
     use rand_core::OsRng;
+
+    use super::*;
 
     #[test]
     fn test_dusk_bytes_serde_proof() {
@@ -1010,6 +1014,12 @@ mod proof_tests {
 #[cfg(test)]
 #[cfg(feature = "std")]
 mod soundness_tests {
+    use dusk_bls12_381::BlsScalar;
+    use ff::Field;
+    use rand::SeedableRng;
+    use rand::rngs::StdRng;
+    use rand_core::{CryptoRng, RngCore};
+
     use crate::commitment_scheme::{CommitKey, PublicParameters};
     use crate::compiler::{Compiler, Prover, Verifier};
     use crate::composer::{Circuit, Composer, Constraint};
@@ -1018,11 +1028,6 @@ mod soundness_tests {
     use crate::proof_system::linearization_poly::{self, ProofEvaluations};
     use crate::proof_system::proof::{self, Proof};
     use crate::transcript::TranscriptProtocol;
-    use dusk_bls12_381::BlsScalar;
-    use ff::Field;
-    use rand::SeedableRng;
-    use rand::rngs::StdRng;
-    use rand_core::{CryptoRng, RngCore};
 
     // Simple arithmetic circuit: a + b + a*b + d + public + 1 = result
     #[derive(Default)]
@@ -1063,11 +1068,11 @@ mod soundness_tests {
     ///
     /// The proof uses:
     /// - Honest wire polynomials (circuit is satisfied at gate level)
-    /// - A RANDOM permutation polynomial z (breaking the permutation
-    ///   argument — gates are not properly wired together)
+    /// - A RANDOM permutation polynomial z (breaking the permutation argument —
+    ///   gates are not properly wired together)
     /// - RANDOM quotient polynomials (not the actual quotient)
-    /// - A FORGED `q_arith_eval` computed to balance the verification
-    ///   equation after observing `z_challenge`
+    /// - A FORGED `q_arith_eval` computed to balance the verification equation
+    ///   after observing `z_challenge`
     ///
     /// This proof is invalid (the permutation argument does not hold)
     /// but exploits the fact that selector evaluations are not bound

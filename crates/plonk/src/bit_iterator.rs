@@ -54,9 +54,11 @@ impl<E: AsRef<[u8]>> Iterator for BitIterator8<E> {
 #[cfg(feature = "std")]
 #[cfg(test)]
 mod test {
-    use super::*;
     use alloc::vec::Vec;
+
     use dusk_bls12_381::BlsScalar;
+
+    use super::*;
 
     #[test]
     fn test_bit_iterator8() {

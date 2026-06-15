@@ -5,6 +5,7 @@
 // Copyright (c) DUSK NETWORK. All rights reserved.
 
 use core::cmp;
+
 use dusk_plonk::prelude::*;
 use ff::Field;
 use rand::SeedableRng;

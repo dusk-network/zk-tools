@@ -7,11 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.22.1] - 2026-06-12
+
+### Added
+
+- Add Makefile targets for test, clippy, fmt, bench, no-std, and clean
+- Add `AGENTS.md` for AI agent orientation
+
+### Changed
+
+- Update `rustfmt.toml` with nightly options (group_imports, imports_granularity, reorder_impl_items, use_field_init_shorthand)
+- Update CI to use Makefile targets for tests and no_std builds
+- Switch CI runners to `core` self-hosted runners
+
+- Speed up verifier hot paths by evaluating public inputs sparsely and
+  reducing heap allocation and scalar-multiplication overhead in proof
+  verification.
+
+### Fixed
+
+- Hardened prover/verifier deserialization length parsing to reject
+  overflowed malformed length fields without panicking.
+
 ## [0.22.0] - 2026-02-27
 
 ### Added
 
-- Added more tests for low coverage parts of the code [#861] 
+- Added more tests for low coverage parts of the code [#861]
 - Added MSRV, set to rust version `1.85` [#860]
 
 ### Changed
@@ -771,7 +793,8 @@ is necessary since `rkyv/validation` was required as a bound.
 [#282]: https://github.com/dusk-network/plonk/issues/282
 
 <!-- VERSIONS -->
-[Unreleased]: https://github.com/dusk-network/plonk/compare/v0.22.0...HEAD
+[Unreleased]: https://github.com/dusk-network/plonk/compare/v0.22.1...HEAD
+[0.22.1]: https://github.com/dusk-network/plonk/compare/v0.22.0...v0.22.1
 [0.22.0]: https://github.com/dusk-network/plonk/compare/v0.21.0...v0.22.0
 [0.21.0]: https://github.com/dusk-network/plonk/compare/v0.20.3...v0.21.0
 [0.20.3]: https://github.com/dusk-network/plonk/compare/v0.20.2...v0.20.3
