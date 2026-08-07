@@ -7,7 +7,7 @@
 //! PLONK runtime controller
 
 #[cfg(feature = "debug")]
-use dusk_bls12_381::BlsScalar;
+use dusk_curves::bls12_381::BlsScalar;
 
 #[cfg(feature = "debug")]
 use crate::debugger::Debugger;
@@ -72,7 +72,7 @@ impl Runtime {
 #[cfg(test)]
 mod tests {
     #[cfg(feature = "debug")]
-    use dusk_bls12_381::BlsScalar;
+    use dusk_curves::bls12_381::BlsScalar;
 
     use super::*;
     #[cfg(feature = "debug")]

@@ -10,8 +10,8 @@ use alloc::vec::Vec;
 
 #[cfg(feature = "rkyv-impl")]
 use bytecheck::CheckBytes;
-use dusk_bls12_381::{G1Affine, G1Projective, G2Affine};
 use dusk_bytes::{DeserializableSlice, Serializable};
+use dusk_curves::bls12_381::{G1Affine, G1Projective, G2Affine};
 use rand_core::{CryptoRng, RngCore};
 #[cfg(feature = "rkyv-impl")]
 use rkyv::{
@@ -35,6 +35,12 @@ use crate::util;
     derive(Archive, Deserialize, Serialize),
     archive(bound(serialize = "__S: Serializer + ScratchSpace")),
     archive_attr(derive(CheckBytes))
+)]
+#[cfg_attr(
+    all(feature = "rkyv-impl", feature = "bls-backend-blst"),
+    archive(bound(
+        deserialize = "__D::Error: From<dusk_curves::bls12_381::InvalidG1Affine>"
+    ))
 )]
 pub struct PublicParameters {
     /// Key used to generate proofs for composed circuits.
@@ -205,9 +211,9 @@ impl PublicParameters {
 #[cfg(feature = "std")]
 #[cfg(test)]
 mod test {
-    use dusk_bls12_381::BlsScalar;
+    use dusk_curves::bls12_381::BlsScalar;
     #[cfg(feature = "rkyv-impl")]
-    use dusk_bls12_381::G2Prepared;
+    use dusk_curves::bls12_381::G2Prepared;
     #[cfg(feature = "rkyv-impl")]
     use merlin::Transcript;
     use rand_core::OsRng;
@@ -217,6 +223,34 @@ mod test {
     use super::*;
     #[cfg(feature = "rkyv-impl")]
     use crate::fft::Polynomial;
+
+    #[cfg(feature = "rkyv-impl")]
+    #[derive(Debug)]
+    struct TestDeserializeError;
+
+    #[cfg(all(feature = "rkyv-impl", feature = "bls-backend-blst"))]
+    impl From<dusk_curves::bls12_381::InvalidG1Affine> for TestDeserializeError {
+        fn from(_: dusk_curves::bls12_381::InvalidG1Affine) -> Self {
+            Self
+        }
+    }
+
+    #[cfg(feature = "rkyv-impl")]
+    struct TestDeserializer;
+
+    #[cfg(feature = "rkyv-impl")]
+    impl rkyv::Fallible for TestDeserializer {
+        type Error = TestDeserializeError;
+    }
+
+    #[cfg(feature = "rkyv-impl")]
+    fn deserialize_public_parameters(
+        bytes: &[u8],
+    ) -> Result<PublicParameters, TestDeserializeError> {
+        let archived = rkyv::check_archived_root::<PublicParameters>(bytes)
+            .map_err(|_| TestDeserializeError)?;
+        rkyv::Deserialize::deserialize(archived, &mut TestDeserializer)
+    }
 
     #[cfg(feature = "rkyv-impl")]
     #[derive(Archive, Serialize)]
@@ -263,20 +297,18 @@ mod test {
 
     #[cfg(feature = "rkyv-impl")]
     fn off_curve_g1() -> G1Affine {
-        let mut bytes =
-            rkyv::to_bytes::<_, 256>(&G1Affine::generator()).unwrap();
+        let mut bytes = G1Affine::generator().to_raw_bytes();
         bytes[0] ^= 1;
-        let point = rkyv::from_bytes::<G1Affine>(&bytes).unwrap();
+        let point = unsafe { G1Affine::from_slice_unchecked(&bytes) };
         assert!(!bool::from(point.is_on_curve()));
         point
     }
 
     #[cfg(feature = "rkyv-impl")]
     fn off_curve_g2() -> G2Affine {
-        let mut bytes =
-            rkyv::to_bytes::<_, 256>(&G2Affine::generator()).unwrap();
+        let mut bytes = G2Affine::generator().to_raw_bytes();
         bytes[0] ^= 1;
-        let point = rkyv::from_bytes::<G2Affine>(&bytes).unwrap();
+        let point = unsafe { G2Affine::from_slice_unchecked(&bytes) };
         assert!(!bool::from(point.is_on_curve()));
         point
     }
@@ -314,7 +346,7 @@ mod test {
         mutate(&mut pp.opening_key);
 
         let bytes = rkyv::to_bytes::<_, 256>(&pp).unwrap();
-        assert!(rkyv::from_bytes::<PublicParameters>(&bytes).is_err());
+        assert!(rkyv::check_archived_root::<PublicParameters>(&bytes).is_err());
     }
 
     #[cfg(feature = "rkyv-impl")]
@@ -339,7 +371,7 @@ mod test {
 
         mutate(&mut pp.opening_key);
         let bytes = rkyv::to_bytes::<_, 256>(&pp).unwrap();
-        let decoded = rkyv::from_bytes::<PublicParameters>(&bytes).unwrap();
+        let decoded = deserialize_public_parameters(&bytes).unwrap();
 
         decoded
             .opening_key
@@ -440,8 +472,16 @@ mod test {
             .len()
             .checked_sub(bytes.len())
             .expect("new opening-key archive unexpectedly exceeds legacy size");
+        #[cfg(feature = "bls-backend-blst")]
+        assert!(
+            saved >= G2Prepared::RAW_SIZE * 2,
+            "expected both prepared points to be omitted, saved {saved} bytes"
+        );
+        #[cfg(feature = "bls-backend-dusk")]
         assert!(saved >= 39_000, "expected a ~39 KB saving, got {saved}");
-        assert!(rkyv::from_bytes::<PublicParameters>(&legacy).is_err());
-        assert!(rkyv::from_bytes::<PublicParameters>(&bytes).is_ok());
+        assert!(
+            rkyv::check_archived_root::<PublicParameters>(&legacy).is_err()
+        );
+        assert!(rkyv::check_archived_root::<PublicParameters>(&bytes).is_ok());
     }
 }

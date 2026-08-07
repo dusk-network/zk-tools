@@ -6,7 +6,7 @@
 
 #[cfg(feature = "rkyv-impl")]
 use bytecheck::CheckBytes;
-use dusk_bls12_381::BlsScalar;
+use dusk_curves::bls12_381::BlsScalar;
 use dusk_jubjub::EDWARDS_D;
 #[cfg(feature = "rkyv-impl")]
 use rkyv::{

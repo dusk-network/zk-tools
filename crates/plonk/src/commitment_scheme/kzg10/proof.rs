@@ -4,7 +4,7 @@
 //
 // Copyright (c) DUSK NETWORK. All rights reserved.
 
-use dusk_bls12_381::BlsScalar;
+use dusk_curves::bls12_381::BlsScalar;
 
 use super::Commitment;
 
@@ -28,7 +28,7 @@ pub(crate) mod alloc {
     use crate::util::powers_of;
     #[rustfmt::skip]
     use ::alloc::vec::Vec;
-    use dusk_bls12_381::G1Projective;
+    use dusk_curves::bls12_381::G1Projective;
     #[cfg(feature = "std")]
     use rayon::prelude::*;
 
@@ -112,7 +112,7 @@ pub(crate) mod alloc {
 
 #[cfg(all(test, feature = "alloc"))]
 mod tests {
-    use dusk_bls12_381::{G1Affine, G1Projective};
+    use dusk_curves::bls12_381::{G1Affine, G1Projective};
 
     use super::*;
 

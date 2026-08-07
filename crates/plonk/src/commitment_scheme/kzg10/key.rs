@@ -11,9 +11,10 @@ use alloc::vec::Vec;
 
 #[cfg(feature = "rkyv-impl")]
 use bytecheck::CheckBytes;
-use dusk_bls12_381::multiscalar_mul::msm_variable_base;
-use dusk_bls12_381::{BlsScalar, G1Affine, G1Projective, G2Affine, G2Prepared};
 use dusk_bytes::{DeserializableSlice, Serializable};
+use dusk_curves::bls12_381::{
+    BlsScalar, G1Affine, G1Projective, G2Affine, G2Prepared, msm_variable_base,
+};
 use merlin::Transcript;
 #[cfg(feature = "rkyv-impl")]
 use rkyv::{
@@ -37,6 +38,12 @@ use crate::util;
     derive(Archive, Deserialize, Serialize),
     archive(bound(serialize = "__S: Serializer + ScratchSpace")),
     archive_attr(derive(CheckBytes))
+)]
+#[cfg_attr(
+    all(feature = "rkyv-impl", feature = "bls-backend-blst"),
+    archive(bound(
+        deserialize = "__D::Error: From<dusk_curves::bls12_381::InvalidG1Affine>"
+    ))
 )]
 pub struct CommitKey {
     /// Group elements of the form `{ \beta^i G }`, where `i` ranges from 0 to
@@ -129,7 +136,8 @@ impl CommitKey {
             // Safety: raw-byte chunk size is checked by `chunks_exact`.
             let point = unsafe { G1Affine::from_slice_unchecked(chunk) };
             let point_is_valid =
-                bool::from(point.is_on_curve() & point.is_torsion_free());
+                bool::from(point.is_on_curve() & point.is_torsion_free())
+                    && point.to_raw_bytes().as_slice() == chunk;
 
             if !point_is_valid {
                 return Err(Error::PointMalformed);
@@ -528,13 +536,12 @@ impl OpeningKey {
         let affine_total_w = G1Affine::from(-total_w);
         let affine_total_c = G1Affine::from(total_c);
 
-        let pairing = dusk_bls12_381::multi_miller_loop(&[
+        let pairing = dusk_curves::bls12_381::multi_miller_loop_result(&[
             (&affine_total_w, &self.prepared_x_h),
             (&affine_total_c, &self.prepared_h),
-        ])
-        .final_exponentiation();
+        ]);
 
-        if pairing != dusk_bls12_381::Gt::identity() {
+        if pairing != dusk_curves::bls12_381::Gt::identity() {
             return Err(Error::PairingCheckFailure);
         };
         Ok(())
@@ -544,8 +551,8 @@ impl OpeningKey {
 #[cfg(feature = "std")]
 #[cfg(test)]
 mod test {
-    use dusk_bls12_381::BlsScalar;
     use dusk_bytes::Serializable;
+    use dusk_curves::bls12_381::BlsScalar;
     use merlin::Transcript;
     use rand_core::OsRng;
 
@@ -563,13 +570,12 @@ mod test {
         let inner_b: G2Affine = (op_key.x_h - (op_key.h * point)).into();
         let prepared_inner_b = G2Prepared::from(-inner_b);
 
-        let pairing = dusk_bls12_381::multi_miller_loop(&[
+        let pairing = dusk_curves::bls12_381::multi_miller_loop_result(&[
             (&inner_a, &op_key.prepared_h),
             (&proof.commitment_to_witness.0, &prepared_inner_b),
-        ])
-        .final_exponentiation();
+        ]);
 
-        pairing == dusk_bls12_381::Gt::identity()
+        pairing == dusk_curves::bls12_381::Gt::identity()
     }
 
     // Creates an opening proof that a polynomial `p` was correctly evaluated at

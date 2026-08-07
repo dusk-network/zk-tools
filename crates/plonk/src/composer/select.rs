@@ -8,7 +8,7 @@
 //! the caller's obligation, discharged with
 //! [`Composer::component_boolean`].
 
-use dusk_bls12_381::BlsScalar;
+use dusk_curves::bls12_381::BlsScalar;
 
 use super::{Composer, Constraint, Witness};
 

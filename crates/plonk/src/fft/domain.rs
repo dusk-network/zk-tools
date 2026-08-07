@@ -14,8 +14,8 @@
 
 #[cfg(feature = "rkyv-impl")]
 use bytecheck::CheckBytes;
-use dusk_bls12_381::BlsScalar;
 use dusk_bytes::{DeserializableSlice, Serializable};
+use dusk_curves::bls12_381::BlsScalar;
 #[cfg(feature = "rkyv-impl")]
 use rkyv::{
     Archive, Deserialize, Serialize,
@@ -112,7 +112,7 @@ pub(crate) mod alloc {
     use ::alloc::vec::Vec;
     use core::ops::MulAssign;
 
-    use dusk_bls12_381::{GENERATOR, ROOT_OF_UNITY, TWO_ADACITY};
+    use dusk_curves::bls12_381::{GENERATOR, ROOT_OF_UNITY, TWO_ADACITY};
     #[cfg(feature = "std")]
     use rayon::prelude::*;
 

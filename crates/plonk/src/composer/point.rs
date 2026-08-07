@@ -8,7 +8,7 @@
 //! subgroup check, group arithmetic, variable-base scalar multiplication and
 //! the two point muxes.
 
-use dusk_bls12_381::BlsScalar;
+use dusk_curves::bls12_381::BlsScalar;
 use dusk_jubjub::{EDWARDS_D, JubJubAffine, JubJubExtended, JubJubScalar};
 
 use super::{

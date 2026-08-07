@@ -10,16 +10,31 @@ This library contains a modular implementation of KZG10 as the default polynomia
 
 ## Usage
 
-To see how to use this library, check the 'examples' directory.
+Select exactly one BLS12-381 backend when adding this crate. For example, to
+use BLST:
+
+```toml
+dusk-plonk = { version = "0.22", default-features = false, features = ["std", "bls-backend-blst"] }
+```
+
+Use `bls-backend-dusk` instead for the pure-Rust Dusk backend. To see how to
+use this library, check the `examples` directory.
 
 ## Features
 
 This crate includes a variety of features which are briefly explained below:
+- `bls-backend-blst`: Selects the optimized BLST BLS12-381 backend.
+- `bls-backend-dusk`: Selects the pure-Rust Dusk BLS12-381 backend. It is
+  mutually exclusive with `bls-backend-blst`.
 - `alloc`: Enables the usage of an allocator, allowing for `Proof` constructions and verifications. Without this feature it **IS NOT** possible to prove or verify anything. 
   Its absence only makes `dusk-plonk` export certain fixed-size data structures such as `Proof`. This is useful in no_std environments that also do not make use of an allocator.
 - `std`: Enables `std` usage as well as `rayon` parallelization in some proving and verifying operations. 
-  It also uses the `std` versions of the elliptic curve dependencies, utilizing the `parallel` feature 
-  from `dusk-bls12-381`. This feature is enabled by default.
+  This feature is enabled by default, but does not select a BLS backend.
+- `parallel`: Enables the Dusk curve backend's parallel implementation. This
+  feature is not compatible with `bls-backend-blst`.
+- `rkyv-impl`: Enables rkyv serialization. Archived curve representations are
+  backend-specific and must not be read after switching backends without an
+  explicit migration.
 - `debug`: Enables the runtime debugger backend, outputting [CDF](https://crates.io/crates/dusk-cdf) files to the path defined in the `CDF_OUTPUT` environment variable. When used, the binary must be compiled with `debug = true`. For more info, check the [cargo book](https://doc.rust-lang.org/cargo/reference/profiles.html#debug).
   __It is recommended to derive the std output and std error and then place them in a text file for efficient gate analysis.__
 
@@ -35,7 +50,9 @@ Benchmarks taken on `Apple M1`, for a circuit-size of `2^16` constraints:
 - Proving time: `7.871s`
 - Verification time: `2.821ms` **(This time does not vary depending on the circuit-size.)**
 
-For more results, please run `cargo bench` to get a full report of benchmarks in respect of constraint numbers.
+For more results, run
+`cargo bench --no-default-features --features=bls-backend-blst,std` to get a
+full report of benchmarks in respect of constraint numbers.
 
 ## Acknowledgements
 

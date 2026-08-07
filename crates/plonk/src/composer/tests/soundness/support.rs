@@ -21,7 +21,7 @@
 
 use alloc::vec::Vec;
 
-use dusk_bls12_381::BlsScalar;
+use dusk_curves::bls12_381::BlsScalar;
 use rand::rngs::StdRng;
 
 use crate::composer::bits::recompose_bits;

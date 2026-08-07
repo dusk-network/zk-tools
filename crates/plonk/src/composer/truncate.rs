@@ -7,7 +7,7 @@
 //! Truncation gadgets: the canonical `high`/`low` split of a field element at
 //! a given bit position, and the public entry point that exposes it.
 
-use dusk_bls12_381::BlsScalar;
+use dusk_curves::bls12_381::BlsScalar;
 
 use super::bits::recompose_bits;
 use super::{Composer, Constraint, Witness};

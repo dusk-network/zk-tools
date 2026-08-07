@@ -10,7 +10,7 @@
 
 use alloc::vec::Vec;
 
-use dusk_bls12_381::BlsScalar;
+use dusk_curves::bls12_381::BlsScalar;
 
 use super::{Composer, Constraint, WiredWitness, Witness};
 use crate::bit_iterator::BitIterator8;

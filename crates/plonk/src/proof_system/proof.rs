@@ -57,6 +57,12 @@ use crate::util::check_field;
     derive(Archive, Deserialize, Serialize),
     archive(bound(serialize = "__S: Serializer + ScratchSpace"))
 )]
+#[cfg_attr(
+    all(feature = "rkyv-impl", feature = "bls-backend-blst"),
+    archive(bound(
+        deserialize = "__D::Error: From<dusk_curves::bls12_381::InvalidG1Affine>"
+    ))
+)]
 pub struct Proof {
     /// Commitment to the witness polynomial for the left wires.
     #[cfg_attr(feature = "rkyv-impl", omit_bounds)]
@@ -206,8 +212,9 @@ pub(crate) mod alloc {
     use crate::util::batch_inversion;
     #[rustfmt::skip]
     use ::alloc::vec::Vec;
-    use dusk_bls12_381::multiscalar_mul::msm_variable_base;
-    use dusk_bls12_381::{BlsScalar, G1Affine, G1Projective};
+    use dusk_curves::bls12_381::{
+        BlsScalar, G1Affine, G1Projective, msm_variable_base,
+    };
     use merlin::Transcript;
     #[cfg(feature = "std")]
     use rayon::prelude::*;
@@ -474,15 +481,14 @@ pub(crate) mod alloc {
             );
 
             // Compute the two pairings and subtract them
-            let pairing = dusk_bls12_381::multi_miller_loop(&[
+            let pairing = dusk_curves::bls12_381::multi_miller_loop_result(&[
                 (&left, &opening_key.prepared_x_h),
                 (&right, &opening_key.prepared_h),
-            ])
-            .final_exponentiation();
+            ]);
 
             // Return 'ProofVerificationError' if the two
             // pairings are not equal, continue otherwise
-            if pairing != dusk_bls12_381::Gt::identity() {
+            if pairing != dusk_curves::bls12_381::Gt::identity() {
                 return Err(Error::ProofVerificationError);
             };
 
@@ -736,15 +742,14 @@ pub(crate) mod alloc {
             );
 
             // Compute the two pairings and subtract them
-            let pairing = dusk_bls12_381::multi_miller_loop(&[
+            let pairing = dusk_curves::bls12_381::multi_miller_loop_result(&[
                 (&left, &opening_key.prepared_x_h),
                 (&right, &opening_key.prepared_h),
-            ])
-            .final_exponentiation();
+            ]);
 
             // Return 'ProofVerificationError' if the two
             // pairings are not equal, continue otherwise
-            if pairing != dusk_bls12_381::Gt::identity() {
+            if pairing != dusk_curves::bls12_381::Gt::identity() {
                 return Err(Error::ProofVerificationError);
             };
 
@@ -954,7 +959,7 @@ pub(crate) mod alloc {
 
 #[cfg(test)]
 mod proof_tests {
-    use dusk_bls12_381::BlsScalar;
+    use dusk_curves::bls12_381::BlsScalar;
     use ff::Field;
     use rand_core::OsRng;
 
@@ -1014,7 +1019,7 @@ mod proof_tests {
 #[cfg(test)]
 #[cfg(feature = "std")]
 mod soundness_tests {
-    use dusk_bls12_381::BlsScalar;
+    use dusk_curves::bls12_381::BlsScalar;
     use ff::Field;
     use rand::SeedableRng;
     use rand::rngs::StdRng;

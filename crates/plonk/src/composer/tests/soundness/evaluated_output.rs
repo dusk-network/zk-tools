@@ -18,7 +18,7 @@
 //! mismatch. Separate structural checks pin the helper and both wrappers to
 //! exactly one intended arithmetic row.
 
-use dusk_bls12_381::BlsScalar;
+use dusk_curves::bls12_381::BlsScalar;
 use rand::SeedableRng;
 use rand::rngs::StdRng;
 

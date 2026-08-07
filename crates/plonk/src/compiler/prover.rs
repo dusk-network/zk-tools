@@ -7,8 +7,8 @@
 use alloc::vec::Vec;
 use core::ops;
 
-use dusk_bls12_381::BlsScalar;
 use dusk_bytes::{DeserializableSlice, Serializable};
+use dusk_curves::bls12_381::BlsScalar;
 use ff::Field;
 use merlin::Transcript;
 use rand_core::{CryptoRng, RngCore};
@@ -644,8 +644,8 @@ impl Prover {
 
 #[cfg(test)]
 mod tests {
-    use dusk_bls12_381::BlsScalar;
     use dusk_bytes::{DeserializableSlice, Serializable};
+    use dusk_curves::bls12_381::BlsScalar;
     use rand::SeedableRng;
     use rand::rngs::StdRng;
 

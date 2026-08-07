@@ -6,7 +6,7 @@
 
 use alloc::vec::Vec;
 
-use dusk_bls12_381::{
+use dusk_curves::bls12_381::{
     BlsScalar, G1Affine, G1Projective, G2Affine, G2Projective,
 };
 use ff::Field;

@@ -13,8 +13,8 @@ use core::ops::{
 
 #[cfg(feature = "rkyv-impl")]
 use bytecheck::CheckBytes;
-use dusk_bls12_381::BlsScalar;
 use dusk_bytes::{DeserializableSlice, Serializable};
+use dusk_curves::bls12_381::BlsScalar;
 #[cfg(feature = "rkyv-impl")]
 use rkyv::{
     Archive, Deserialize, Serialize,

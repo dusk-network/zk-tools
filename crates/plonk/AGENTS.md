@@ -24,16 +24,14 @@ Run these commands from the `zk-tools` repository root.
 
 ### Build
 
-    cargo build
+    cargo build --no-default-features --features bls-backend-blst,std
     make clippy                                  # Preferred — checks and lints in one step
 
 ### Test
 
     make test                                    # Full suite (release mode)
-    cargo test --release                         # Default features
-    cargo test --release --all-features          # All features
-    cargo test --release <test_name>             # Single test by name
-    cargo run --release --example circuit        # Run example
+    cargo test --release --no-default-features --features bls-backend-blst,std
+    cargo run --release --example circuit --no-default-features --features bls-backend-blst,std
 
 **Tests MUST use `--release`** — debug mode takes up to an hour for proof tests.
 
@@ -70,16 +68,20 @@ Widget-based prover with a Turbo composer. Circuits implement the `Circuit` trai
 
 | Feature | Purpose | Default |
 |---------|---------|---------|
+| `bls-backend-dusk` | Pure-Rust BLS12-381 backend | No |
+| `bls-backend-blst` | BLST BLS12-381 backend | No |
 | `std` | Enables rayon parallelism | Yes |
 | `alloc` | Core feature for proof construction/verification | No |
 | `debug` | Runtime debugger with CDF output | No |
 | `rkyv-impl` | rkyv serialization support | No |
+| `parallel` | Dusk-backend curve parallelism | No |
 
 ## Elevated Care Zone
 
 This is a cryptographic crate — soundness bugs break consensus and privacy. Work with extra diligence.
 
-- **Verify**: `make test` (covers both default and all-features) and `make no-std`
+- **Verify**: `make test` (covers the supported BLST feature matrix) and
+  `make no-std`
 - **Watch**: polynomial arithmetic, commitment opening proofs, transcript (Fiat-Shamir) binding, gate constraint enforcement
 
 ## Conventions
