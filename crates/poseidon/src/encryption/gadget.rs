@@ -6,7 +6,9 @@
 
 use alloc::vec::Vec;
 
-use dusk_plonk::prelude::{Composer, Witness, WitnessPoint};
+use dusk_zk_composer::prelude::{
+    Composer, ComposerBackend, Witness, WitnessPoint,
+};
 
 use crate::hades::GadgetPermutation;
 use crate::{Domain, Error};
@@ -17,8 +19,8 @@ use crate::{Domain, Error};
 /// The shared secret is expected to be a valid point on the jubjub-curve.
 ///
 /// The cipher-text will always yield exactly one element more than the message.
-pub fn encrypt_gadget(
-    composer: &mut Composer,
+pub fn encrypt_gadget<B: ComposerBackend>(
+    composer: &mut Composer<B>,
     message: impl AsRef<[Witness]>,
     shared_secret: &WitnessPoint,
     nonce: &Witness,
@@ -39,8 +41,8 @@ pub fn encrypt_gadget(
 /// The shared secret is expected to be a valid point on the jubjub-curve.
 ///
 /// The cipher-text will always yield exactly one element more than the message.
-pub fn decrypt_gadget(
-    composer: &mut Composer,
+pub fn decrypt_gadget<B: ComposerBackend>(
+    composer: &mut Composer<B>,
     cipher: impl AsRef<[Witness]>,
     shared_secret: &WitnessPoint,
     nonce: &Witness,

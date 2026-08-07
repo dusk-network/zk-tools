@@ -7,7 +7,7 @@
 use criterion::{Criterion, black_box, criterion_group, criterion_main};
 use dusk_curves::bls12_381::BlsScalar;
 use dusk_jubjub::{GENERATOR_EXTENDED, JubJubAffine, JubJubScalar};
-use dusk_plonk::prelude::{Error as PlonkError, *};
+use dusk_plonk::prelude::*;
 use dusk_poseidon::{decrypt, decrypt_gadget, encrypt};
 use ff::Field;
 use once_cell::sync::Lazy;
@@ -70,7 +70,10 @@ impl Default for DecryptionCircuit {
 }
 
 impl Circuit for DecryptionCircuit {
-    fn circuit(&self, composer: &mut Composer) -> Result<(), PlonkError> {
+    fn circuit<B: ComposerBackend>(
+        &self,
+        composer: &mut Composer<B>,
+    ) -> Result<(), CircuitError> {
         // append all variables to the circuit
         let mut cipher_wit = Vec::with_capacity(MESSAGE_LEN + 1);
         self.cipher

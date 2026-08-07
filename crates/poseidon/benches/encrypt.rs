@@ -7,7 +7,7 @@
 use criterion::{Criterion, black_box, criterion_group, criterion_main};
 use dusk_curves::bls12_381::BlsScalar;
 use dusk_jubjub::{GENERATOR_EXTENDED, JubJubAffine, JubJubScalar};
-use dusk_plonk::prelude::{Error as PlonkError, *};
+use dusk_plonk::prelude::*;
 use dusk_poseidon::{encrypt, encrypt_gadget};
 use ff::Field;
 use once_cell::sync::Lazy;
@@ -65,9 +65,12 @@ impl Default for EncryptionCircuit {
 }
 
 impl Circuit for EncryptionCircuit {
-    fn circuit(&self, composer: &mut Composer) -> Result<(), PlonkError> {
+    fn circuit<B: ComposerBackend>(
+        &self,
+        composer: &mut Composer<B>,
+    ) -> Result<(), CircuitError> {
         // append all variables to the circuit
-        let mut message_wit = [Composer::ZERO; MESSAGE_LEN];
+        let mut message_wit = [Composer::<B>::ZERO; MESSAGE_LEN];
         message_wit
             .iter_mut()
             .zip(self.message)

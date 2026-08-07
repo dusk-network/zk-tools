@@ -79,9 +79,12 @@ impl<const L: usize> TestCircuit<L> {
 }
 
 impl<const L: usize> Circuit for TestCircuit<L> {
-    fn circuit(&self, composer: &mut Composer) -> Result<(), PlonkError> {
+    fn circuit<B: ComposerBackend>(
+        &self,
+        composer: &mut Composer<B>,
+    ) -> Result<(), CircuitError> {
         // append input to the circuit
-        let mut input_witnesses = [Composer::ZERO; L];
+        let mut input_witnesses = [Composer::<B>::ZERO; L];
         self.input
             .iter()
             .zip(input_witnesses.iter_mut())
@@ -157,9 +160,12 @@ impl<const L: usize> TestTruncatedCircuit<L> {
 }
 
 impl<const L: usize> Circuit for TestTruncatedCircuit<L> {
-    fn circuit(&self, composer: &mut Composer) -> Result<(), PlonkError> {
+    fn circuit<B: ComposerBackend>(
+        &self,
+        composer: &mut Composer<B>,
+    ) -> Result<(), CircuitError> {
         // append input to the circuit
-        let mut input_witnesses = [Composer::ZERO; L];
+        let mut input_witnesses = [Composer::<B>::ZERO; L];
         self.input
             .iter()
             .zip(input_witnesses.iter_mut())
@@ -246,9 +252,12 @@ impl<const I: usize, const O: usize> MultipleOutputCircuit<I, O> {
 }
 
 impl<const I: usize, const O: usize> Circuit for MultipleOutputCircuit<I, O> {
-    fn circuit(&self, composer: &mut Composer) -> Result<(), PlonkError> {
+    fn circuit<B: ComposerBackend>(
+        &self,
+        composer: &mut Composer<B>,
+    ) -> Result<(), CircuitError> {
         // append input to the circuit
-        let mut input_witnesses = [Composer::ZERO; I];
+        let mut input_witnesses = [Composer::<B>::ZERO; I];
         self.input
             .iter()
             .zip(input_witnesses.iter_mut())

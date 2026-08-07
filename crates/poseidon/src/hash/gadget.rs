@@ -6,8 +6,8 @@
 
 use alloc::vec::Vec;
 
-use dusk_plonk::prelude::{Composer, Witness};
 use dusk_safe::Sponge;
+use dusk_zk_composer::prelude::{Composer, ComposerBackend, Witness};
 
 use super::io_pattern;
 use crate::Domain;
@@ -50,7 +50,10 @@ impl<'a> HashGadget<'a> {
     /// This function panics when the io-pattern can not be created with the
     /// given domain and input, e.g. using [`Domain::Merkle4`] with an input
     /// anything other than 4 Scalar.
-    pub fn finalize(&self, composer: &mut Composer) -> Vec<Witness> {
+    pub fn finalize<B: ComposerBackend>(
+        &self,
+        composer: &mut Composer<B>,
+    ) -> Vec<Witness> {
         // Generate the hash using the sponge framework:
         // initialize the sponge
         let mut sponge = Sponge::start(
@@ -85,7 +88,10 @@ impl<'a> HashGadget<'a> {
     /// This function panics when the io-pattern can not be created with the
     /// given domain and input, e.g. using [`Domain::Merkle4`] with an input
     /// anything other than 4 Scalar.
-    pub fn finalize_truncated(&self, composer: &mut Composer) -> Vec<Witness> {
+    pub fn finalize_truncated<B: ComposerBackend>(
+        &self,
+        composer: &mut Composer<B>,
+    ) -> Vec<Witness> {
         // finalize the hash as bls-scalar witnesses
         let bls_output = self.finalize(composer);
 
@@ -102,8 +108,8 @@ impl<'a> HashGadget<'a> {
     /// This function panics when the io-pattern can not be created with the
     /// given domain and input, e.g. using [`Domain::Merkle4`] with an input
     /// anything other than 4 Scalar.
-    pub fn digest(
-        composer: &mut Composer,
+    pub fn digest<B: ComposerBackend>(
+        composer: &mut Composer<B>,
         domain: Domain,
         input: &'a [Witness],
     ) -> Vec<Witness> {
@@ -118,8 +124,8 @@ impl<'a> HashGadget<'a> {
     /// This function panics when the io-pattern can not be created with the
     /// given domain and input, e.g. using [`Domain::Merkle4`] with an input
     /// anything other than 4 Scalar.
-    pub fn digest_truncated(
-        composer: &mut Composer,
+    pub fn digest_truncated<B: ComposerBackend>(
+        composer: &mut Composer<B>,
         domain: Domain,
         input: &'a [Witness],
     ) -> Vec<Witness> {

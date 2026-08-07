@@ -29,8 +29,11 @@ impl SpongeCircuit {
 }
 
 impl Circuit for SpongeCircuit {
-    fn circuit(&self, composer: &mut Composer) -> Result<(), Error> {
-        let mut w_message = [Composer::ZERO; HADES_WIDTH - 1];
+    fn circuit<B: ComposerBackend>(
+        &self,
+        composer: &mut Composer<B>,
+    ) -> Result<(), CircuitError> {
+        let mut w_message = [Composer::<B>::ZERO; HADES_WIDTH - 1];
         w_message
             .iter_mut()
             .zip(self.message)
