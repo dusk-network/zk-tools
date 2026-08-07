@@ -87,3 +87,28 @@ Import scope: `plonkwasm/` subtree only
 Only commits and files relevant to the upstream `plonkwasm/` subtree are
 preserved. Commit IDs differ from the original repository because unrelated
 paths were removed and `plonkwasm/` was rewritten as `crates/plonkwasm/`.
+
+## Monorepo integration changes
+
+After import, Cargo dependency declarations were adjusted so the imported
+crates use one another directly from this repository. Dependency versions,
+features, optionality, and `default-features` settings remain unchanged.
+
+The following dependency edges use local paths:
+
+- `dusk-poseidon` -> `dusk-plonk`
+- `poseidon-merkle` -> `dusk-merkle`
+- `poseidon-merkle` -> `dusk-poseidon`
+- `poseidon-merkle` -> `dusk-plonk`
+- `jubjub-schnorr` -> `dusk-poseidon`
+- `jubjub-schnorr` -> `dusk-plonk`
+
+The upstream merkle repository's nested workspace manifest is omitted so its
+two crates can be direct members of the root workspace. Consequently,
+`poseidon-merkle`'s upstream `dusk-merkle.workspace = true` declaration is
+expanded to the equivalent version-and-path dependency.
+
+`plonkwasm` is intentionally excluded from the root workspace and continues to
+use its published `dusk-plonk` dependency for now. No Rust source, test,
+benchmark, example, asset, crate version, feature, or cryptographic behavior
+was changed by the local-path integration.
