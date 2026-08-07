@@ -56,8 +56,10 @@ Tests use `--release` because `poseidon-merkle` depends on `dusk-plonk` (via the
 
 | Feature    | Description                                    | Default |
 |------------|------------------------------------------------|---------|
+| `bls-backend-dusk` | Pure-Rust BLS12-381 backend          | No      |
+| `bls-backend-blst` | BLST BLS12-381 backend               | No      |
 | `zk`       | PLONK circuit support via `dusk-plonk`        | No      |
-| `rkyv-impl`| rkyv serialization (enables on bls12_381 and dusk-merkle too) | No |
+| `rkyv-impl`| rkyv serialization (enables on dusk-curves and dusk-merkle too) | No |
 | `size_16`  | rkyv 16-bit pointer size (mutually exclusive) | No      |
 | `size_32`  | rkyv 32-bit pointer size (mutually exclusive) | No      |
 | `size_64`  | rkyv 64-bit pointer size (mutually exclusive) | No      |
@@ -84,7 +86,7 @@ The tree is a **sparse** data structure — only populated leaves and their ance
 
 ### Key Dependencies
 
-- `dusk-bls12_381` — BLS12-381 scalar field (leaf type for Poseidon tree)
+- `dusk-curves` — backend-agnostic BLS12-381 facade (leaf type for Poseidon tree)
 - `dusk-poseidon` — Poseidon hash function
 - `dusk-plonk` — PLONK proving system (optional, `zk` feature)
 - `dusk-bytes` — Canonical byte serialization

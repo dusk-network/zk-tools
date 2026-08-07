@@ -82,12 +82,12 @@ cargo bench
 
 For the `poseidon` tree:
 ```shell
-cargo bench -p poseidon-merkle
+cargo bench -p poseidon-merkle --no-default-features --features bls-backend-blst
 ```
 
 For the opening proof creation in zero-knowledge:
 ```shell
-cargo bench -p poseidon-merkle --features zk
+cargo bench -p poseidon-merkle --no-default-features --features bls-backend-blst,zk
 ```
 
 ## Implementations

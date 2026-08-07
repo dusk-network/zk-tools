@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Replace the `dusk-bls12_381` dev dependency with `dusk-curves` and run its
+  scalar-based tests with BLST
+  ([#2](https://github.com/dusk-network/zk-tools/issues/2))
 - Update `dusk-bls12_381` dev dependency to v0.14
 - Update to rust stable version 1.85, edition 2024
 

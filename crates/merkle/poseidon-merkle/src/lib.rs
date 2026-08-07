@@ -11,8 +11,8 @@
 #[cfg(feature = "zk")]
 pub mod zk;
 
-use dusk_bls12_381::BlsScalar;
 use dusk_bytes::Serializable;
+use dusk_curves::bls12_381::BlsScalar;
 use dusk_merkle::Aggregate;
 use dusk_poseidon::{Domain, Hash};
 
@@ -35,7 +35,7 @@ pub type Opening<T, const H: usize> = dusk_merkle::Opening<Item<T>, H, ARITY>;
 /// ```rust
 /// use std::cmp::{max, min};
 ///
-/// use dusk_bls12_381::BlsScalar;
+/// use dusk_curves::bls12_381::BlsScalar;
 /// use dusk_merkle::Aggregate;
 /// use dusk_poseidon::{Domain, Hash};
 /// use poseidon_merkle::{ARITY, Item, Tree as PoseidonTree};
