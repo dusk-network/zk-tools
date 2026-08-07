@@ -90,9 +90,9 @@ paths were removed and `plonkwasm/` was rewritten as `crates/plonkwasm/`.
 
 ## Monorepo integration changes
 
-After import, Cargo dependency declarations were adjusted so the imported
-crates use one another directly from this repository. Dependency versions,
-features, optionality, and `default-features` settings remain unchanged.
+After import, repository integration was adjusted so the imported crates use
+one another directly from this repository. Dependency versions, features,
+optionality, and `default-features` settings remain unchanged.
 
 The following dependency edges use local paths:
 
@@ -112,3 +112,30 @@ expanded to the equivalent version-and-path dependency.
 use its published `dusk-plonk` dependency for now. No Rust source, test,
 benchmark, example, asset, crate version, feature, or cryptographic behavior
 was changed by the local-path integration.
+
+Nested upstream `.github/workflows/` files are omitted because GitHub Actions
+only discovers workflows in the repository-root `.github/workflows/`
+directory. They are replaced by the root `ci.yml`, which checks formatting,
+builds and tests the workspace, runs supported clippy feature matrices, checks
+no-std and WASM targets, compiles available benchmarks, builds documentation,
+and runs the PLONK example.
+
+The crate-local Cargo configurations that only supplied relative rustdoc
+header paths are also omitted. Cargo does not discover them when invoked from
+the workspace root, so the root Makefile supplies the correct workspace-relative
+paths for the affected documentation builds.
+
+The `jubjub-schnorr` `zk` feature checks and benchmarks, and the
+`dusk-poseidon` ZK integration tests and benchmarks, are temporarily omitted
+from the unified CI because those imported revisions' witness-point APIs are
+not compatible with the imported local `dusk-plonk` revision. Their non-ZK
+feature matrices remain covered; their ZK-enabled libraries remain covered by
+clippy.
+
+The imported `poseidon-merkle` benchmark is also temporarily omitted because
+it still uses superseded Poseidon module paths and Merkle type signatures. Its
+library and test suite remain covered by the unified CI.
+
+The `dusk-plonk` `debug` feature is also omitted from the unified test matrix
+because its imported CDF test does not preserve its temporary output directory.
+Default and other optional-feature tests remain covered.
