@@ -7,7 +7,7 @@
 use std::sync::atomic::{AtomicUsize, Ordering};
 
 use criterion::{Criterion, criterion_group, criterion_main};
-use dusk_plonk::prelude::{Error as PlonkError, *};
+use dusk_plonk::prelude::*;
 use ff::Field;
 use jubjub_schnorr::{
     PublicKeyVarGen, SecretKeyVarGen, SignatureVarGen, gadgets,
@@ -62,7 +62,10 @@ impl SigVarGenCircuit {
 }
 
 impl Circuit for SigVarGenCircuit {
-    fn circuit(&self, composer: &mut Composer) -> Result<(), PlonkError> {
+    fn circuit<B: ComposerBackend>(
+        &self,
+        composer: &mut Composer<B>,
+    ) -> Result<(), CircuitError> {
         let u = composer.append_witness(*self.signature.u());
         let r = composer.append_point(*self.signature.R())?;
 

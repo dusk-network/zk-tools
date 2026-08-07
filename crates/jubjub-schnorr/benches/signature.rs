@@ -7,7 +7,7 @@
 use std::sync::atomic::{AtomicUsize, Ordering};
 
 use criterion::{Criterion, criterion_group, criterion_main};
-use dusk_plonk::prelude::{Error as PlonkError, *};
+use dusk_plonk::prelude::*;
 use ff::Field;
 use jubjub_schnorr::{PublicKey, SecretKey, Signature, gadgets};
 use rand::SeedableRng;
@@ -60,7 +60,10 @@ impl SignatureCircuit {
 }
 
 impl Circuit for SignatureCircuit {
-    fn circuit(&self, composer: &mut Composer) -> Result<(), PlonkError> {
+    fn circuit<B: ComposerBackend>(
+        &self,
+        composer: &mut Composer<B>,
+    ) -> Result<(), CircuitError> {
         let u = composer.append_witness(*self.signature.u());
         let r = composer.append_point(*self.signature.R())?;
 

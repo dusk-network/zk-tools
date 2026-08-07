@@ -6,13 +6,17 @@
 
 //! # Schnorr Signature Gadgets
 //!
-//! This module provides Plonk gadgets for verification of Schnorr signatures.
+//! This module provides Composer gadgets for verification of Schnorr
+//! signatures.
 
 use dusk_jubjub::{GENERATOR_EXTENDED, GENERATOR_NUMS_EXTENDED};
-use dusk_plonk::prelude::*;
 use dusk_poseidon::{Domain, HashGadget};
+use dusk_zk_composer::prelude::*;
 
-fn assert_not_identity(composer: &mut Composer, y: Witness) {
+fn assert_not_identity<B: ComposerBackend>(
+    composer: &mut Composer<B>,
+    y: Witness,
+) {
     // For an on-curve JubJub point, y != 1 is equivalent to requiring a
     // non-identity point. Enforce it with an inverse witness:
     // (y - 1) * inverse = 1.
@@ -30,8 +34,8 @@ fn assert_not_identity(composer: &mut Composer, y: Witness) {
     );
 }
 
-fn assert_valid_point(
-    composer: &mut Composer,
+fn assert_valid_point<B: ComposerBackend>(
+    composer: &mut Composer<B>,
     point: WitnessPoint,
 ) -> TorsionFreeWitnessPoint {
     let point = composer.assert_torsion_free_point(point);
@@ -43,7 +47,7 @@ fn assert_valid_point(
     point
 }
 
-/// Verifies a single-key Schnorr signature [`Signature`]within a Plonk circuit
+/// Verifies a single-key Schnorr signature [`Signature`] within a circuit
 /// without requiring the secret key as a witness.
 ///
 /// The function performs Schnorr verification by calculating the challenge and
@@ -55,7 +59,7 @@ fn assert_valid_point(
 ///
 /// ### Parameters
 ///
-/// - `composer`: A mutable reference to the Plonk [`Composer`]`.
+/// - `composer`: A mutable reference to the circuit [`Composer`]`.
 /// - `u`: Witness for the random nonce used during signature generation.
 /// - `r`: Witness Point representing the nonce point `r = u*G`.
 /// - `pk`: Witness Point representing the public key `pk = sk*G`.
@@ -72,8 +76,8 @@ fn assert_valid_point(
 /// [`JubJubScalar`].
 ///
 /// [`Signature`]: [`crate::Signature`]
-pub fn verify_signature(
-    composer: &mut Composer,
+pub fn verify_signature<B: ComposerBackend>(
+    composer: &mut Composer<B>,
     u: Witness,
     r: WitnessPoint,
     pk: WitnessPoint,
@@ -101,7 +105,7 @@ pub fn verify_signature(
     Ok(())
 }
 
-/// Verifies a [`SignatureDouble`] within a Plonk circuit without requiring
+/// Verifies a [`SignatureDouble`] within a circuit without requiring
 /// the secret key as a witness.
 ///
 /// # Feature
@@ -110,7 +114,7 @@ pub fn verify_signature(
 ///
 /// ### Parameters
 ///
-/// - `composer`: A mutable reference to the Plonk [`Composer`].
+/// - `composer`: A mutable reference to the circuit [`Composer`].
 /// - `u`: Witness for the random nonce used during signature generation.
 /// - `r`: Witness Point representing the nonce points `R = u*G`
 /// - `r_p`: Witness Point representing the nonce points `R' = u*G'`.
@@ -129,8 +133,8 @@ pub fn verify_signature(
 /// [`JubJubScalar`].
 ///
 /// [`SignatureDouble`]: [`crate::SignatureDouble`]
-pub fn verify_signature_double(
-    composer: &mut Composer,
+pub fn verify_signature_double<B: ComposerBackend>(
+    composer: &mut Composer<B>,
     u: Witness,
     r: WitnessPoint,
     r_p: WitnessPoint,
@@ -171,7 +175,7 @@ pub fn verify_signature_double(
 }
 
 /// Verifies a Schnorr signature with variable generator [`SignatureVarGen`]
-/// within a Plonk circuit without requiring the secret key as a witness.
+/// within a circuit without requiring the secret key as a witness.
 ///
 /// The function performs Schnorr verification by calculating the challenge and
 /// confirming the signature equation.
@@ -182,7 +186,7 @@ pub fn verify_signature_double(
 ///
 /// ### Parameters
 ///
-/// - `composer`: A mutable reference to the Plonk [`Composer`]`.
+/// - `composer`: A mutable reference to the circuit [`Composer`]`.
 /// - `u`: Witness for the random nonce used during signature generation.
 /// - `r`: Witness Point representing the nonce point `r = u*G`.
 /// - `pk`: Witness Point representing the public key `pk = sk*G`.
@@ -201,8 +205,8 @@ pub fn verify_signature_double(
 /// makes the circuit unsatisfiable.
 ///
 /// [`SignatureVarGen`]: [`crate::SignatureVarGen`]
-pub fn verify_signature_var_gen(
-    composer: &mut Composer,
+pub fn verify_signature_var_gen<B: ComposerBackend>(
+    composer: &mut Composer<B>,
     u: Witness,
     r: WitnessPoint,
     pk: WitnessPoint,
