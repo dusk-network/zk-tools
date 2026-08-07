@@ -4,14 +4,14 @@ All of the code under this repository is licensed under the
 Mozilla Public License Version 2.0.
 
 If you have questions or comments, please feel free to email the
-authors listed [here](https://github.com/dusk-network/plonk/blob/master/Cargo.toml#L4). 
+authors listed in [Cargo.toml](Cargo.toml).
 
 For feature requests, suggestions, and bug reports, please open an issue on
-[our Github](https://github.com/dusk-network/plonk).  (Or, send us
+[our GitHub](https://github.com/dusk-network/zk-tools). (Or, send us
 an email if you're opposed to using Github for whatever reason.)
 
 Patches are welcomed as pull requests on
-[our Github](https://github.com/dusk-network/plonk), as well as by
+[our GitHub](https://github.com/dusk-network/zk-tools), as well as by
 email (preferably sent to all of the authors listed in `Cargo.toml`).
 
 If you want to work on an issue, please let us know in the comments of it and
@@ -38,7 +38,7 @@ other kind of inconsistency with your code.
 
 - Do not open PRs that are not linked or related to a previously opened issue. 
 
-- Update the `Unreleased` section of the [CHANGELOG](https://github.com/dusk-network/plonk/blob/master/CHANGELOG.md)
+- Update the `Unreleased` section of the [CHANGELOG](CHANGELOG.md)
 if your PR includes anything that it's worth to be noticed in there. Avoid adding things
 like doc-nitpicks and similar changes which do not affect directly any added,
 fixed, removed or changed feature.
@@ -66,4 +66,3 @@ a trade-off and numerous costs. There is seldom a right answer.
 * Private harassment is also unacceptable. No matter who you are, if you feel you have been or are being harassed or made uncomfortable by a community member, please contact one of the channel ops or any of the Rust moderation team immediately. Whether you’re a regular contributor or a newcomer, we care about making this community a safe place for you and we’ve got your back.
 
 * Likewise any spamming, trolling, flaming, baiting or other attention-stealing behavior is not welcome.
-

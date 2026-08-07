@@ -1,7 +1,6 @@
 # PLONK 
 [![Build Status](https://github.com/dusk-network/zk-tools/actions/workflows/ci.yml/badge.svg)](https://github.com/dusk-network/zk-tools/actions/workflows/ci.yml)
 [![Repository](https://img.shields.io/badge/github-plonk-blueviolet?logo=github)](https://github.com/dusk-network/plonk)
-[![Documentation](https://img.shields.io/badge/docs-plonk-blue?logo=rust)](https://docs.rs/dusk-plonk/latest/)
 
 _This is a pure Rust implementation of the PLONK proving system over BLS12-381._
 
@@ -27,7 +26,7 @@ This crate includes a variety of features which are briefly explained below:
 ## Documentation
 
 The crate documentation provides information about all the functions that the library provides, as well
-as the documentation regarding the data structures that it exports. To check this, visit the [documentation page](https://docs.rs/dusk-plonk/) or run `make doc` or `make doc-internal`.
+as the documentation regarding the data structures that it exports. To check this, visit the [documentation page](https://docs.rs/dusk-plonk/) or run `make doc` from the repository root.
 
 ## Performance
 
@@ -45,7 +44,7 @@ For more results, please run `cargo bench` to get a full report of benchmarks in
 
 ## Licensing
 
-This code is licensed under the Mozilla Public License Version 2.0 (MPL-2.0). Please see [LICENSE](https://github.com/dusk-network/plonk/blob/master/LICENSE) for more information.
+This code is licensed under the Mozilla Public License Version 2.0 (MPL-2.0). Please see [LICENSE](LICENSE) for more information.
 
 ## About
 
@@ -53,5 +52,5 @@ This implementation is designed by the [Dusk](https://dusk.network) team.
 
 ## Contributing
 
-- If you want to contribute to this repository/project, please check our [CONTRIBUTING.md](https://github.com/dusk-network/plonk/blob/master/CONTRIBUTING.md).
+- If you want to contribute to this repository/project, please check our [CONTRIBUTING.md](CONTRIBUTING.md).
 - If you want to report a bug or request a new feature addition, please open an issue on this repository.

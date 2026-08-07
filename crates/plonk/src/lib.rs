@@ -7,11 +7,11 @@
 #![doc = include_str!("../README.md")]
 #![doc(html_logo_url = "https://dusk.network/favicon.svg")]
 #![doc(html_favicon_url = "https://dusk.network/favicon.png")]
-//! <a href="https://github.com/dusk-network/plonk">
-//! <img alt="GitHub issues" src="https://img.shields.io/github/issues-raw/dusk-network/plonk">
+//! <a href="https://github.com/dusk-network/zk-tools/issues">
+//! <img alt="GitHub issues" src="https://img.shields.io/github/issues-raw/dusk-network/zk-tools">
 //! </a>
-//! <a href="https://github.com/dusk-network/plonk/blob/master/LICENSE">
-//! <img alt="GitHub" src="https://img.shields.io/github/license/dusk-network/plonk?color=%230E55EF">
+//! <a href="https://github.com/dusk-network/zk-tools/blob/main/LICENSE">
+//! <img alt="GitHub" src="https://img.shields.io/github/license/dusk-network/zk-tools?color=%230E55EF">
 //! </a>
 //!
 //!
