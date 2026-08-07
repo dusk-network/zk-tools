@@ -1,0 +1,10 @@
+[workspace]
+members = [
+    "crates/plonk",
+    "crates/poseidon",
+    "crates/merkle/dusk-merkle",
+    "crates/merkle/poseidon-merkle",
+    "crates/jubjub-schnorr",
+]
+exclude = ["crates/plonkwasm"]
+resolver = "3"
