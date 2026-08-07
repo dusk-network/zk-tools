@@ -61,7 +61,7 @@ in the repository.
 
 ## Licensing
 
-This code is licensed under Mozilla Public License Version 2.0 (MPL-2.0). Please see [LICENSE](LICENSE) for further info.
+This code is licensed under Mozilla Public License Version 2.0 (MPL-2.0). Please see the [workspace license](https://github.com/dusk-network/zk-tools/blob/main/LICENSE) for further info.
 
 ## About
 
