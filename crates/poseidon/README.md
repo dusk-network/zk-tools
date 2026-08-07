@@ -1,4 +1,4 @@
-![Build Status](https://github.com/dusk-network/Poseidon252/workflows/Continuous%20integration/badge.svg)
+[![Build Status](https://github.com/dusk-network/zk-tools/actions/workflows/ci.yml/badge.svg)](https://github.com/dusk-network/zk-tools/actions/workflows/ci.yml)
 [![Repository](https://img.shields.io/badge/github-poseidon252-blueviolet)](https://github.com/dusk-network/Poseidon252)
 [![Documentation](https://img.shields.io/badge/docs-poseidon252-blue)](https://docs.rs/dusk-poseidon/latest/dusk_poseidon/)
 
