@@ -32,15 +32,27 @@ fn generate_cdf_works() -> io::Result<()> {
     let (prover, _verifier) = Compiler::compile::<EmptyCircuit>(&pp, label)
         .map_err(|e| io::Error::new(io::ErrorKind::Other, e))?;
 
+    let previous_output = env::var_os("CDF_OUTPUT");
     unsafe {
         env::set_var("CDF_OUTPUT", &path);
     }
 
-    prover
+    let prove_result = prover
         .prove(rng, &EmptyCircuit)
-        .map_err(|e| io::Error::new(io::ErrorKind::Other, e))?;
+        .map_err(|e| io::Error::new(io::ErrorKind::Other, e));
 
-    path.canonicalize().and_then(CircuitDescription::open)?;
+    unsafe {
+        match previous_output {
+            Some(value) => env::set_var("CDF_OUTPUT", value),
+            None => env::remove_var("CDF_OUTPUT"),
+        }
+    }
 
-    Ok(())
+    prove_result?;
+
+    let description = path.canonicalize().and_then(CircuitDescription::open);
+    let cleanup = dir.close();
+
+    description?;
+    cleanup
 }
