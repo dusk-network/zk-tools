@@ -1,7 +1,6 @@
 # jubjub-schnorr
 [![Build Status](https://github.com/dusk-network/zk-tools/actions/workflows/ci.yml/badge.svg)](https://github.com/dusk-network/zk-tools/actions/workflows/ci.yml)
 [![Repository](https://img.shields.io/badge/github-schnorr-blueviolet?logo=github)](https://github.com/dusk-network/jubjub-schnorr)
-[![Documentation](https://img.shields.io/badge/docs-schnorr-blue?logo=rust)](https://docs.rs/jubjub-schnorr/)
 
 This crate provides a Rust implementation of the Schnorr signature scheme for the JubJub elliptic curve group, using the Poseidon hash function. This implementation is designed by the [Dusk](https://dusk.network) team.
 

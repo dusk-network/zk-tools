@@ -7,15 +7,16 @@ allow forged signatures or break consensus.
 
 ## Overview
 
-Schnorr signatures on JubJub with PLONK circuit gadgets. Single crate.
-`no_std`.
+Schnorr signatures on JubJub with PLONK circuit gadgets. This crate is a
+member of the `zk-tools` workspace and is `no_std`.
 
 Variants: standard, double (two public keys), variable generator,
 multisig.
 
 ## Commands
 
-Run `make help` to list all available targets. Key points:
+From the `zk-tools` repository root, run `make help` to list all available
+targets. Key points:
 
 - **Always use `make` targets** — the Makefile is the source of truth
   for build, test, and clippy commands.
@@ -54,8 +55,8 @@ Run `make help` to list all available targets. Key points:
 
 ## Git
 
-Single-crate repo. Commit messages use imperative mood, no scope
-prefix.
+Use imperative commit messages and a `jubjub-schnorr` scope for changes
+specific to this crate.
 
 ## Changelog
 
