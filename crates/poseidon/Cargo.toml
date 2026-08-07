@@ -1,0 +1,63 @@
+[package]
+name = "dusk-poseidon"
+version = "0.42.0-rc.0"
+description = "Implementation of Poseidon hash algorithm over the Bls12-381 Scalar field."
+categories = ["algorithms", "cryptography", "no-std", "wasm"]
+keywords = ["cryptography", "zero-knowledge", "crypto"]
+
+repository = "https://github.com/dusk-network/poseidon252"
+edition = "2024"
+rust-version = "1.85"
+license = "MPL-2.0"
+
+[dependencies]
+dusk-bls12_381 = { version = "0.14", default-features = false, features = ["zeroize"] }
+dusk-jubjub = { version = "0.15", default-features = false }
+dusk-plonk = { version = "0.22.0-rc.0", default-features = false, features = ["alloc", "zeroize"], optional = true }
+dusk-safe = "0.3"
+
+[dev-dependencies]
+criterion = "0.5"
+rand = { version = "0.8", default-features = false, features = ["getrandom", "std_rng"] }
+ff = { version = "0.13", default-features = false }
+once_cell = "1"
+dusk-bytes = "0.1"
+
+[features]
+zk = [
+    "dusk-plonk",
+]
+encryption = ["dusk-safe/encryption"]
+
+[profile.dev]
+opt-level = 3
+debug = false
+rpath = false
+lto = false
+debug-assertions = false
+codegen-units = 16
+panic = 'unwind'
+incremental = false
+overflow-checks = false
+
+[profile.release]
+debug = false
+panic = 'abort'
+lto = true
+incremental = false
+codegen-units = 1
+
+[[bench]]
+name = "hash"
+harness = false
+required-features = ["zk"]
+
+[[bench]]
+name = "encrypt"
+harness = false
+required-features = ["zk", "encryption"]
+
+[[bench]]
+name = "decrypt"
+harness = false
+required-features = ["zk", "encryption"]
