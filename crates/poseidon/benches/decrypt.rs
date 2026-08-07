@@ -76,7 +76,7 @@ impl Circuit for DecryptionCircuit {
         self.cipher
             .iter()
             .for_each(|c| cipher_wit.push(composer.append_witness(*c)));
-        let secret_wit = composer.append_point(self.shared_secret);
+        let secret_wit = composer.append_point(self.shared_secret)?;
         let nonce_wit = composer.append_witness(self.nonce);
 
         // decrypt the cipher with the gadget

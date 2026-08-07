@@ -87,3 +87,66 @@ Import scope: `plonkwasm/` subtree only
 Only commits and files relevant to the upstream `plonkwasm/` subtree are
 preserved. Commit IDs differ from the original repository because unrelated
 paths were removed and `plonkwasm/` was rewritten as `crates/plonkwasm/`.
+
+## Monorepo integration changes
+
+After import, repository integration was adjusted so the imported crates use
+one another directly from this repository. Dependency versions, features,
+optionality, and `default-features` settings remain unchanged.
+
+The following dependency edges use local paths:
+
+- `dusk-poseidon` -> `dusk-plonk`
+- `poseidon-merkle` -> `dusk-merkle`
+- `poseidon-merkle` -> `dusk-poseidon`
+- `poseidon-merkle` -> `dusk-plonk`
+- `jubjub-schnorr` -> `dusk-poseidon`
+- `jubjub-schnorr` -> `dusk-plonk`
+
+The upstream merkle repository's nested workspace manifest is omitted so its
+two crates can be direct members of the root workspace. Consequently,
+`poseidon-merkle`'s upstream `dusk-merkle.workspace = true` declaration is
+expanded to the equivalent version-and-path dependency.
+
+`plonkwasm` is intentionally excluded from the root workspace and continues to
+use its published `dusk-plonk` dependency for now.
+
+The local dependency graph exposed API and circuit-soundness differences
+between the imported revisions. The following post-import compatibility
+changes are intentionally part of the monorepo history:
+
+- `dusk-poseidon` uses `dusk-plonk`'s canonically bound 250-bit truncation
+  component. Native and circuit hash outputs are unchanged, but the circuit
+  layout changes.
+- `jubjub-schnorr` adapts to the fallible point-allocation API, constrains
+  prover-controlled public keys and variable generators to the prime-order
+  subgroup, rejects identity points where the native verifier does, and
+  constrains variable-generator responses to canonical JubJub scalars. These
+  are security-sensitive circuit changes.
+- Circuit tests and benchmarks are adapted to the current point, Poseidon, and
+  Merkle APIs. The Poseidon-Merkle benchmark data generation now uses the
+  public domain-separated hash API.
+- The PLONK debugger test preserves its caller's `CDF_OUTPUT` environment and
+  explicitly cleans up its temporary directory.
+
+These circuit-layout changes require regeneration of circuit-specific proving
+and verifier keys and cached circuit descriptions. They do not require a new
+universal SRS, provided the existing parameters have sufficient capacity.
+Crate versions and feature definitions remain unchanged.
+
+Nested upstream `.github/workflows/` files are omitted because GitHub Actions
+only discovers workflows in the repository-root `.github/workflows/`
+directory. They are replaced by the root `ci.yml`, which checks formatting,
+builds and tests the workspace, runs supported clippy feature matrices, checks
+no-std and WASM targets, compiles available benchmarks, builds documentation,
+and runs the PLONK example.
+
+The crate-local Cargo configurations that only supplied relative rustdoc
+header paths are also omitted. Cargo does not discover them when invoked from
+the workspace root, so the root Makefile supplies the correct workspace-relative
+paths for the affected documentation builds.
+
+Package profile sections from the imported PLONK and Poseidon manifests are
+defined at the workspace root because Cargo ignores member profiles. The root
+manifest documents the unified release and benchmark policy and retains
+Poseidon's optimized development build through a package override.

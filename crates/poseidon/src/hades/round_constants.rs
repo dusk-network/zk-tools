@@ -8,7 +8,7 @@
 //! from `assets/arc.bin`.
 //!
 //! The constants were originally computed using:
-//! https://extgit.iaik.tugraz.at/krypto/hadesmimc/blob/master/code/calc_round_numbers.py
+//! <https://extgit.iaik.tugraz.at/krypto/hadesmimc/blob/master/code/calc_round_numbers.py>
 //! and then mapped onto `BlsScalar` in the Bls12_381 scalar field.
 
 use dusk_bls12_381::BlsScalar;

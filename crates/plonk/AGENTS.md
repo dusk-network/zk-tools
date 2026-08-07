@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-**dusk-plonk** is a pure Rust implementation of the PLONK ZK proving system over BLS12-381 with a KZG10 polynomial commitment scheme and custom gates. Single crate, no workspace.
+**dusk-plonk** is a pure Rust implementation of the PLONK ZK proving system over BLS12-381 with a KZG10 polynomial commitment scheme and custom gates. It is a member of the `zk-tools` workspace.
 
 ### Key Directories
 
@@ -20,6 +20,8 @@
 
 ## Commands
 
+Run these commands from the `zk-tools` repository root.
+
 ### Build
 
     cargo build
@@ -30,7 +32,7 @@
     make test                                    # Full suite (release mode)
     cargo test --release                         # Default features
     cargo test --release --all-features          # All features
-    cargo test --release -t <test_name>          # Single test
+    cargo test --release <test_name>             # Single test by name
     cargo run --release --example circuit        # Run example
 
 **Tests MUST use `--release`** — debug mode takes up to an hour for proof tests.
@@ -47,7 +49,6 @@
 ### Docs
 
     make doc                                     # Build docs with KaTeX
-    make doc-local                               # Build and open in browser
 
 ### PR Minimum
 
@@ -94,5 +95,5 @@ Changes to plonk ripple to downstream crates — `phoenix/circuits`, `poseidon-m
 
 ## Git
 
-**Branches**: branch from `master`. Don't push to `master` directly.
+**Branches**: branch from `main`. Don't push to `main` directly.
 **Commits**: follow the style of recent commits in the repo.

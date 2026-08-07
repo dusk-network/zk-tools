@@ -3,18 +3,18 @@
 ## Care Level: Cryptographic — Elevated
 
 Core hash function used across the Dusk stack (nullifiers, Merkle trees,
-encryption). A bug here affects consensus and privacy. See the root
-`CLAUDE.md` at `~/dusk/CLAUDE.md` for cross-repo propagation rules.
+encryption). A bug here affects consensus and privacy.
 
 ## Overview
 
-Poseidon hash over the BLS12-381 scalar field. Uses the Hades252
+Poseidon hash over the BLS12-381 scalar field and a member of the
+`zk-tools` workspace. Uses the Hades252
 permutation (8 full + 60 partial rounds, width 5) via the SAFE sponge
 framework. Single crate, `no_std` with `alloc`.
 
 ## Commands
 
-Run `make help` for the full target list.
+From the `zk-tools` repository root, run `make help` for the full target list.
 
 ## Architecture
 
@@ -67,7 +67,7 @@ and on-chain encryption.
 
 ## Git Conventions
 
-- Default branch: `master`
+- Default branch: `main`
 - License: MPL-2.0
 
 ### Commit messages

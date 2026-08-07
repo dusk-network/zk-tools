@@ -62,15 +62,14 @@ impl SigDoubleCircuit {
 impl Circuit for SigDoubleCircuit {
     fn circuit(&self, composer: &mut Composer) -> Result<(), PlonkError> {
         let u = composer.append_witness(*self.signature.u());
-        let r = composer.append_point(self.signature.R());
-        let r_p = composer.append_point(self.signature.R_prime());
+        let r = composer.append_point(*self.signature.R())?;
+        let r_p = composer.append_point(*self.signature.R_prime())?;
 
-        let pk = composer.append_point(self.pk.pk());
-        let pk_p = composer.append_point(self.pk.pk_prime());
+        let pk = composer.append_point(*self.pk.pk())?;
+        let pk_p = composer.append_point(*self.pk.pk_prime())?;
         let m = composer.append_witness(self.message);
 
-        gadgets::verify_signature_double(composer, u, r, r_p, pk, pk_p, m)
-            .expect("this is infallible");
+        gadgets::verify_signature_double(composer, u, r, r_p, pk, pk_p, m)?;
 
         CONSTRAINTS.store(composer.constraints(), Ordering::Relaxed);
 

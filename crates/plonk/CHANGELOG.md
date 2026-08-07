@@ -15,6 +15,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add `Error::JubJubPointDegenerate` [#889]
 - Add `Composer::component_truncate<N>` [#867]
 - Add `Composer::component_range_bits<BITS>` range check counting bits directly [#867]
+- Expose `Composer::assert_canonical_jubjub_scalar` for components that
+  interpret field witnesses as serialized JubJub scalars
 - Add the public `Error::JubJubGeneratorNotPrimeOrder` variant [#832]
 - Add `Error::CircuitUnsatisfied` [#877]
 

@@ -72,7 +72,7 @@ impl Circuit for EncryptionCircuit {
             .iter_mut()
             .zip(self.message)
             .for_each(|(w, m)| *w = composer.append_witness(m));
-        let secret_wit = composer.append_point(self.shared_secret);
+        let secret_wit = composer.append_point(self.shared_secret)?;
         let nonce_wit = composer.append_witness(self.nonce);
 
         // encrypt the message with the gadget

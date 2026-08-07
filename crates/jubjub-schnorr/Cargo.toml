@@ -2,7 +2,7 @@
 name = "jubjub-schnorr"
 version = "0.7.0-rc.0"
 readme = "README.md"
-repository = "https://github.com/dusk-network/jubjub-schnorr"
+repository = "https://github.com/dusk-network/zk-tools"
 keywords = [
     "cryptography",
     "schnorr",
@@ -21,7 +21,7 @@ edition = "2024"
 [dependencies]
 rand_core = { version = "0.6", default-features = false }
 dusk-bytes = "0.1"
-dusk-poseidon = "0.42.0-rc.0"
+dusk-poseidon = { version = "0.42.0-rc.0", path = "../poseidon" }
 dusk-bls12_381 = { version = "0.14", default-features = false }
 dusk-jubjub = { version = "0.15", default-features = false, features = [
     "zeroize",
@@ -30,7 +30,7 @@ ff = { version = "0.13", default-features = false }
 zeroize = { version = "1", default-features = false, features = ["derive"] }
 rkyv = { version = "0.7", optional = true, default-features = false }
 bytecheck = { version = "0.6", optional = true, default-features = false }
-dusk-plonk = { version = "0.22.0-rc.0", default-features = false, features = [
+dusk-plonk = { version = "0.22.0-rc.0", path = "../plonk", default-features = false, features = [
     "alloc",
 ], optional = true }
 serde = { version = "1.0", default-features = false, optional = true }

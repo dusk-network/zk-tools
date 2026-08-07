@@ -1,6 +1,5 @@
-![Build Status](https://github.com/dusk-network/Poseidon252/workflows/Continuous%20integration/badge.svg)
+[![Build Status](https://github.com/dusk-network/zk-tools/actions/workflows/ci.yml/badge.svg)](https://github.com/dusk-network/zk-tools/actions/workflows/ci.yml)
 [![Repository](https://img.shields.io/badge/github-poseidon252-blueviolet)](https://github.com/dusk-network/Poseidon252)
-[![Documentation](https://img.shields.io/badge/docs-poseidon252-blue)](https://docs.rs/dusk-poseidon/latest/dusk_poseidon/)
 
 # Dusk-Poseidon
 
@@ -62,7 +61,7 @@ in the repository.
 
 ## Licensing
 
-This code is licensed under Mozilla Public License Version 2.0 (MPL-2.0). Please see [LICENSE](https://github.com/dusk-network/plonk/blob/master/LICENSE) for further info.
+This code is licensed under Mozilla Public License Version 2.0 (MPL-2.0). Please see the [workspace license](https://github.com/dusk-network/zk-tools/blob/main/LICENSE) for further info.
 
 ## About
 
@@ -70,5 +69,5 @@ Implementation designed by the [dusk](https://dusk.network) team.
 
 ## Contributing
 
-- If you want to contribute to this repository/project please, check [CONTRIBUTING.md](https://github.com/dusk-network/Poseidon252/blob/master/CONTRIBUTING.md)
+- If you want to contribute to this repository/project please, check [CONTRIBUTING.md](CONTRIBUTING.md)
 - If you want to report a bug or request a new feature addition, please open an issue on this repository.
