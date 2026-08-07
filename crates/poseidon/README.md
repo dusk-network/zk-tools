@@ -16,6 +16,15 @@ The library provides the two hashing techniques of Poseidon:
 - The 'normal' hashing functionalities operating on `BlsScalar`.
 - The 'gadget' hashing functionalities that build a circuit which outputs the hash.
 
+Consumers must select exactly one curve backend. For example:
+
+```toml
+dusk-poseidon = { version = "0.42", default-features = false, features = ["bls-backend-blst"] }
+dusk-curves = { version = "0.2", default-features = false, features = ["bls-backend-blst"] }
+```
+
+Use `bls-backend-dusk` on both dependencies to select the pure-Rust backend.
+
 ## Example
 
 ```rust
@@ -23,7 +32,7 @@ use rand::rngs::StdRng;
 use rand::SeedableRng;
 
 use dusk_poseidon::{Domain, Hash};
-use dusk_bls12_381::BlsScalar;
+use dusk_curves::bls12_381::BlsScalar;
 use ff::Field;
 
 // generate random input
@@ -55,7 +64,7 @@ There are benchmarks for hashing, encrypting and decrypting in their native form
 
 To run all benchmarks on your machine, run
 ```shell
-cargo bench --features=zk,encryption
+cargo bench --no-default-features --features=bls-backend-blst,zk,encryption
 ```
 in the repository.
 
