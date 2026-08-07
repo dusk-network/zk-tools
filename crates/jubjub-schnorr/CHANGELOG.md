@@ -15,6 +15,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Replace the direct `dusk-bls12_381` dependency with `dusk-curves` and require
+  consumers to select either the Dusk or BLST backend explicitly
+  ([#2](https://github.com/dusk-network/zk-tools/issues/2))
 - Use hedged nonce generation with variant-specific domain separators
   in all Schnorr sign variants to prevent secret key recovery under
   weak RNGs
@@ -26,6 +29,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Rename private signature storage fields to avoid warnings in rkyv-generated
+  archived types; public APIs and serialized layouts are unchanged
 - Constrain circuit public keys and variable generators to the prime-order
   subgroup and reject identity public keys, generators, and nonce points.
 - Constrain variable-generator signature responses to canonical JubJub

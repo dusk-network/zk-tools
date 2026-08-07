@@ -4,8 +4,8 @@
 //
 // Copyright (c) DUSK NETWORK. All rights reserved.
 
-use dusk_bls12_381::BlsScalar;
 use dusk_bytes::Serializable;
+use dusk_curves::bls12_381::BlsScalar;
 use dusk_jubjub::JubJubScalar;
 use ff::Field;
 use jubjub_schnorr::{Error, PublicKey, SecretKey, Signature};

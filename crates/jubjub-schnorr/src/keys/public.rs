@@ -13,8 +13,8 @@
 //! elliptic curve generated from the [`SecretKey`] and generator point, and
 //! they provide the basis for signature verification.
 
-use dusk_bls12_381::BlsScalar;
 use dusk_bytes::{Error as BytesError, Serializable};
+use dusk_curves::bls12_381::BlsScalar;
 use dusk_jubjub::{GENERATOR_EXTENDED, JubJubAffine, JubJubExtended};
 
 use crate::{Error, SecretKey, Signature};
@@ -35,7 +35,7 @@ use rkyv::{Archive, Deserialize, Serialize};
 /// Generate a [`PublicKey`] from a [`SecretKey`]:
 /// ```
 /// use jubjub_schnorr::{SecretKey, PublicKey};
-/// use dusk_bls12_381::BlsScalar;
+/// use dusk_curves::bls12_381::BlsScalar;
 /// use rand::rngs::StdRng;
 /// use rand::SeedableRng;
 ///

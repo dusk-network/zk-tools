@@ -13,8 +13,8 @@
 pub(crate) mod double;
 pub(crate) mod var_gen;
 
-use dusk_bls12_381::BlsScalar;
 use dusk_bytes::{DeserializableSlice, Error as BytesError, Serializable};
+use dusk_curves::bls12_381::BlsScalar;
 use dusk_jubjub::{JubJubAffine, JubJubExtended, JubJubScalar};
 use dusk_poseidon::{Domain, Hash};
 #[cfg(feature = "rkyv-impl")]
@@ -32,7 +32,7 @@ use crate::PublicKey;
 /// ## Example
 ///
 /// ```
-/// use dusk_bls12_381::BlsScalar;
+/// use dusk_curves::bls12_381::BlsScalar;
 /// use jubjub_schnorr::{PublicKey, SecretKey, Signature};
 /// use rand::rngs::StdRng;
 /// use rand::SeedableRng;
@@ -58,10 +58,9 @@ use crate::PublicKey;
     derive(Archive, Deserialize, Serialize),
     archive_attr(derive(bytecheck::CheckBytes))
 )]
-#[allow(non_snake_case)]
 pub struct Signature {
     u: JubJubScalar,
-    R: JubJubExtended,
+    r: JubJubExtended,
 }
 
 impl Signature {
@@ -73,13 +72,13 @@ impl Signature {
     /// Exposes the `R` point of the Schnorr signature.
     #[allow(non_snake_case)]
     pub fn R(&self) -> &JubJubExtended {
-        &self.R
+        &self.r
     }
 
     /// Creates a new single key [`Signature`] with the given parameters
     #[allow(non_snake_case)]
     pub(crate) fn new(u: JubJubScalar, R: JubJubExtended) -> Self {
-        Self { u, R }
+        Self { u, r: R }
     }
 
     /// Returns true if the inner point is valid according to certain criteria.
@@ -91,9 +90,9 @@ impl Signature {
     /// 2. It is on the curve.
     /// 3. It is not the identity.
     pub fn is_valid(&self) -> bool {
-        let is_identity: bool = self.R.is_identity().into();
-        self.R.is_torsion_free().into()
-            && self.R.is_on_curve().into()
+        let is_identity: bool = self.r.is_identity().into();
+        self.r.is_torsion_free().into()
+            && self.r.is_on_curve().into()
             && !is_identity
     }
 }
@@ -104,7 +103,7 @@ impl Serializable<64> for Signature {
     fn to_bytes(&self) -> [u8; Self::SIZE] {
         let mut buf = [0u8; Self::SIZE];
         buf[..32].copy_from_slice(&self.u.to_bytes()[..]);
-        buf[32..].copy_from_slice(&JubJubAffine::from(self.R).to_bytes()[..]);
+        buf[32..].copy_from_slice(&JubJubAffine::from(self.r).to_bytes()[..]);
         buf
     }
 
@@ -113,7 +112,7 @@ impl Serializable<64> for Signature {
         let u = JubJubScalar::from_slice(&bytes[..32])?;
         let R = JubJubExtended::from(JubJubAffine::from_slice(&bytes[32..])?);
 
-        Ok(Self { u, R })
+        Ok(Self { u, r: R })
     }
 }
 
