@@ -1,0 +1,45 @@
+[package]
+name = "dusk-zk-composer"
+version = "0.1.0"
+categories = ["algorithms", "cryptography", "no-std", "mathematics"]
+edition = "2024"
+rust-version = "1.85"
+keywords = ["cryptography", "circuits", "zero-knowledge", "zk-snarks"]
+license = "MPL-2.0"
+repository = "https://github.com/dusk-network/zk-tools"
+description = "Proof-system-neutral circuit composer for Dusk zero-knowledge tooling"
+
+[dependencies]
+cfg-if = "1.0"
+dusk-bytes = "0.1"
+dusk-curves = { version = "=0.2.1", default-features = false }
+dusk-jubjub = { version = "0.15", default-features = false }
+hashbrown = { version = "0.9", default-features = false, features = ["ahash"] }
+msgpacker = { version = "=0.4.8", default-features = false, features = ["alloc", "derive"], optional = true }
+miniz_oxide = { version = "0.7", default-features = false, features = ["with-alloc"], optional = true }
+sha2 = { version = "0.10", default-features = false, optional = true }
+backtrace = { version = "0.3", optional = true }
+dusk-cdf = { version = "0.5", optional = true }
+zeroize = { version = "1", optional = true }
+
+[features]
+default = ["std", "plonkish"]
+bls-backend-dusk = ["dusk-curves/bls-backend-dusk"]
+bls-backend-blst = ["dusk-curves/bls-backend-blst"]
+std = [
+    "alloc",
+    "dusk-jubjub/default",
+    "hashbrown/default",
+    "msgpacker/std",
+    "miniz_oxide/std",
+]
+alloc = ["msgpacker", "miniz_oxide", "sha2"]
+plonkish = ["alloc"]
+debug = ["std", "plonkish", "dusk-cdf", "backtrace"]
+parallel = ["dusk-curves/parallel"]
+rkyv-impl = ["dusk-curves/rkyv-impl", "dusk-jubjub/rkyv-impl"]
+test-api = ["plonkish"]
+
+[package.metadata.docs.rs]
+no-default-features = true
+features = ["bls-backend-blst", "std", "plonkish"]
