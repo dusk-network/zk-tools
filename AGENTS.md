@@ -15,9 +15,8 @@ were rewritten only to relocate files under `crates/`.
 - `crates/jubjub-schnorr/` — `jubjub-schnorr`
 - `crates/plonkwasm/` — the filtered `plonkweb/plonkwasm/` subtree
 
-The root Cargo workspace contains every crate above except `plonkwasm`, which
-is intentionally excluded for now. Workspace crates use local path dependencies
-where they depend on one another.
+The root Cargo workspace contains every crate above. Workspace crates use local
+path dependencies where they depend on one another.
 
 ## Working in the repository
 
