@@ -10,6 +10,9 @@ build: ## Build all workspace crates
 
 test: ## Run the supported test matrix for every workspace crate
 	# Keep repository tests on BLST while preserving both public backend features.
+	cargo test -p dusk-zk-composer --release \
+		--no-default-features \
+		--features=bls-backend-blst,std,plonkish,debug,rkyv-impl,zeroize
 	cargo test -p dusk-plonk --release \
 		--no-default-features \
 		--features=bls-backend-blst,std,debug,rkyv-impl,zeroize,legacy-proving
@@ -25,6 +28,9 @@ fmt: ## Format all workspace crates; use CHECK=1 to check only
 	cargo +nightly fmt --all $(if $(CHECK),-- --check,)
 
 clippy: ## Run the supported clippy matrix for every workspace crate
+	cargo clippy -p dusk-zk-composer --no-default-features \
+		--features=bls-backend-blst,std,plonkish,debug,rkyv-impl,zeroize \
+		--no-deps -- -D warnings
 	cargo clippy -p dusk-plonk --no-default-features \
 		--features=bls-backend-blst,std,rkyv-impl,zeroize,legacy-proving \
 		--no-deps -- -D warnings
@@ -41,6 +47,7 @@ clippy: ## Run the supported clippy matrix for every workspace crate
 		--features=bls-backend-blst,wasm-rayon --no-deps -- -D warnings
 
 no-std: ## Check bare-metal and WASM with the portable Dusk backend
+	$(MAKE) -C crates/composer no-std
 	$(MAKE) -C crates/plonk no-std
 	$(MAKE) -C crates/poseidon no-std
 	$(MAKE) -C crates/merkle no-std
@@ -60,6 +67,8 @@ build-benches: ## Compile benchmark targets without running them
 		--features=bls-backend-blst,wasm-rayon --no-run
 
 doc: ## Build documentation for every workspace crate
+	RUSTDOCFLAGS="-D warnings" cargo doc -p dusk-zk-composer --no-deps --no-default-features \
+		--features=bls-backend-blst,std,plonkish
 	cargo rustdoc -p dusk-plonk --lib --no-default-features \
 		--features=bls-backend-blst,std -- \
 		--html-in-header crates/plonk/katex-header.html -D warnings

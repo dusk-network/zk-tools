@@ -1,5 +1,6 @@
 [workspace]
 members = [
+    "crates/composer",
     "crates/plonk",
     "crates/poseidon",
     "crates/merkle/dusk-merkle",
@@ -30,6 +31,9 @@ lto = true
 # The optional CDF debugger needs symbols to resolve and embed caller source
 # files.
 [profile.release.package.dusk-plonk]
+debug = true
+
+[profile.release.package.dusk-zk-composer]
 debug = true
 
 # Preserve the imported PLONK benchmark profile as the workspace benchmark
