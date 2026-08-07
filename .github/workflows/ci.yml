@@ -24,17 +24,18 @@ jobs:
       - run: make fmt CHECK=1
 
   build:
-    name: Build
+    name: Build all crates (BLST backend)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@stable
-      # The Merkle crates expose mutually exclusive size_* features, so a
-      # workspace-wide --all-features build is not a valid feature set.
+      # The workspace includes plonkwasm. Backend selection is explicit, and
+      # the Merkle crates expose mutually exclusive size_* features, so
+      # --all-features is not a valid feature set.
       - run: make build
 
   test:
-    name: Tests
+    name: Tests (BLST backend)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -42,7 +43,7 @@ jobs:
       - run: make test
 
   clippy:
-    name: Clippy
+    name: Clippy (BLST backend)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -52,7 +53,9 @@ jobs:
       - run: make clippy
 
   no-std:
-    name: no_std and WASM
+    # BLST is the repository backend except where native BLST cannot target the
+    # bare-metal/WASM configurations covered by the no_std checks.
+    name: no_std and WASM (Dusk backend)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -60,7 +63,7 @@ jobs:
       - run: make no-std
 
   benches:
-    name: Build benchmarks
+    name: Build benchmarks (BLST backend)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -68,7 +71,7 @@ jobs:
       - run: make build-benches
 
   documentation:
-    name: Documentation
+    name: Documentation (BLST backend)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -76,7 +79,7 @@ jobs:
       - run: make doc
 
   examples:
-    name: Examples
+    name: Examples (BLST backend)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
