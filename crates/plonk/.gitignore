@@ -1,0 +1,7 @@
+/target
+**/*.rs.bk
+Cargo.lock
+notes.md
+design.md
+refactor_notes
+.DS_Store

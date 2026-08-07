@@ -1,0 +1,35 @@
+help: ## Display this help screen
+	@grep -h -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
+		awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
+
+test: ## Run tests
+	@cargo test --release
+	@cargo test --release --all-features
+
+clippy: ## Run clippy
+	@cargo clippy --features=rkyv/size_32
+
+fmt: ## Format code (requires nightly)
+	@cargo +nightly fmt --all
+
+bench: ## Run benchmarks
+	@cargo bench
+
+no-std: ## Verify no_std compatibility
+	@rustup target add thumbv6m-none-eabi
+	@cargo build --release --no-default-features --features alloc --target thumbv6m-none-eabi
+	@cargo build --release --no-default-features --target thumbv6m-none-eabi
+
+doc: ## Generate documentation
+	@cargo rustdoc --lib -- --html-in-header katex-header.html -D warnings
+
+doc-internal: ## Generate documentation with private items
+	@cargo rustdoc --lib -- --document-private-items -D warnings
+
+doc-local: ## Open local documentation
+	@RUSTDOCFLAGS="--html-in-header katex-header.html" cargo doc --no-deps --open
+
+clean: ## Clean build artifacts
+	@cargo clean
+
+.PHONY: help test clippy fmt bench no-std doc doc-internal doc-local clean

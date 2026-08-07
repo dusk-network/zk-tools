@@ -1,0 +1,146 @@
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+//
+// Copyright (c) DUSK NETWORK. All rights reserved.
+
+//! This is an extension over the [Merlin Transcript](Transcript)
+//! which adds a few extra functionalities.
+
+use alloc::boxed::Box;
+
+use dusk_bls12_381::BlsScalar;
+use dusk_bytes::Serializable;
+use merlin::Transcript;
+
+use crate::commitment_scheme::Commitment;
+use crate::proof_system::VerifierKey;
+
+// Merlin's `Transcript::new` requires `&'static [u8]`, but callers pass
+// runtime `&[u8]` labels. `Box::leak` bridges the gap by promoting the
+// allocation to `'static`. Without caching, every call to `base` / `base_v3`
+// leaks a new allocation — on a long-running node this accumulates
+// proportionally to the number of verified transactions.
+cfg_if::cfg_if! {
+    if #[cfg(feature = "std")] {
+        // With std we cache leaked labels in a `HashMap` so each distinct
+        // label is only leaked once, bounding memory to the number of
+        // unique circuit labels (typically a handful).
+        fn transcript_label_static(label: &[u8]) -> &'static [u8] {
+            use alloc::vec::Vec;
+            use std::sync::Mutex;
+            use std::collections::HashMap;
+
+            static CACHE: Mutex<Option<HashMap<Vec<u8>, &'static [u8]>>> =
+                Mutex::new(None);
+
+            let mut guard =
+                CACHE.lock().unwrap_or_else(|e| e.into_inner());
+            let map = guard.get_or_insert_with(HashMap::new);
+
+            if let Some(&cached) = map.get(label) {
+                return cached;
+            }
+
+            let leaked: &'static [u8] =
+                Box::leak(label.to_vec().into_boxed_slice());
+            map.insert(label.to_vec(), leaked);
+            leaked
+        }
+    } else {
+        // no_std (WASM): executions are short-lived so accumulation is not
+        // a concern — keep the simple Box::leak approach.
+        fn transcript_label_static(label: &[u8]) -> &'static [u8] {
+            Box::leak(label.to_vec().into_boxed_slice())
+        }
+    }
+}
+
+/// Transcript adds an abstraction over the Merlin transcript
+/// For convenience
+pub(crate) trait TranscriptProtocol {
+    /// Append a `commitment` with the given `label`.
+    fn append_commitment(&mut self, label: &'static [u8], comm: &Commitment);
+
+    /// Append a `BlsScalar` with the given `label`.
+    fn append_scalar(&mut self, label: &'static [u8], s: &BlsScalar);
+
+    /// Compute a `label`ed challenge variable.
+    fn challenge_scalar(&mut self, label: &'static [u8]) -> BlsScalar;
+
+    /// Append domain separator for the circuit size.
+    fn circuit_domain_sep(&mut self, n: u64);
+
+    /// Create a new instance of the base transcript of the protocol
+    fn base(
+        label: &[u8],
+        verifier_key: &VerifierKey,
+        constraints: usize,
+    ) -> Self;
+
+    /// Create a transcript seeded with v3 verifier-key binding behavior.
+    fn base_v3(
+        label: &[u8],
+        verifier_key: &VerifierKey,
+        constraints: usize,
+    ) -> Self;
+}
+
+impl TranscriptProtocol for Transcript {
+    fn append_commitment(&mut self, label: &'static [u8], comm: &Commitment) {
+        self.append_message(label, &comm.0.to_bytes());
+    }
+
+    fn append_scalar(&mut self, label: &'static [u8], s: &BlsScalar) {
+        self.append_message(label, &s.to_bytes())
+    }
+
+    fn challenge_scalar(&mut self, label: &'static [u8]) -> BlsScalar {
+        let mut buf = [0u8; 64];
+        self.challenge_bytes(label, &mut buf);
+
+        BlsScalar::from_bytes_wide(&buf)
+    }
+
+    fn circuit_domain_sep(&mut self, n: u64) {
+        self.append_message(b"dom-sep", b"circuit_size");
+        self.append_u64(b"n", n);
+    }
+
+    fn base(
+        label: &[u8],
+        verifier_key: &VerifierKey,
+        constraints: usize,
+    ) -> Self {
+        // Transcript can't be serialized/deserialized. One alternative is to
+        // fork merlin and implement these functionalities, so we can use custom
+        // transcripts for provers and verifiers. However, we don't have a use
+        // case for this feature in Dusk.
+
+        let label = transcript_label_static(label);
+
+        let mut transcript = Transcript::new(label);
+
+        transcript.circuit_domain_sep(constraints as u64);
+
+        verifier_key.seed_transcript_legacy(&mut transcript);
+
+        transcript
+    }
+
+    fn base_v3(
+        label: &[u8],
+        verifier_key: &VerifierKey,
+        constraints: usize,
+    ) -> Self {
+        let label = transcript_label_static(label);
+
+        let mut transcript = Transcript::new(label);
+
+        transcript.circuit_domain_sep(constraints as u64);
+
+        verifier_key.seed_transcript(&mut transcript);
+
+        transcript
+    }
+}
