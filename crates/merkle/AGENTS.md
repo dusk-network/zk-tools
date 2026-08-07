@@ -1,11 +1,11 @@
 # Merkle
 
-Sparse Merkle tree implementation for the Dusk network. Workspace with two `no_std` crates: a generic tree with openings (proofs), and a Poseidon-hashed variant with optional ZK circuit support.
+Sparse Merkle tree implementation for the Dusk network. This part of the `zk-tools` workspace contains two `no_std` crates: a generic tree with openings (proofs), and a Poseidon-hashed variant with optional ZK circuit support.
 
 ## Repository Map
 
 ```
-merkle/
+crates/merkle/
 ├── dusk-merkle/       # dusk-merkle — generic sparse Merkle tree with openings
 ├── poseidon-merkle/   # poseidon-merkle — Poseidon-hashed tree (arity 4), ZK circuits
 └── Makefile           # Root Makefile delegating to member crates
@@ -28,12 +28,13 @@ Poseidon-hashed Merkle tree (arity 4) built on `dusk-merkle`:
 
 ## Commands
 
+Run the unified targets from the `zk-tools` repository root:
+
 ```bash
-make test          # Run all tests (dusk-merkle + poseidon-merkle, --release)
-make no-std        # Verify bare-metal target compatibility (thumbv6m-none-eabi)
+make test          # Run the supported test matrix for the workspace
+make no-std        # Verify bare-metal and WASM configurations
 make clippy        # Run clippy on all crates
 make fmt           # Format code (requires nightly toolchain)
-make check         # Run cargo check
 make doc           # Generate documentation
 make clean         # Clean build artifacts
 ```
@@ -117,7 +118,7 @@ The tree is a **sparse** data structure — only populated leaves and their ance
 
 Format: `<scope>: <Description>` — imperative mood, capitalize first word after colon.
 
-**One commit per crate per concern.** Each commit touches exactly one crate and one logical concern. Never bundle changes to different crates in one commit, and don't mix unrelated changes within the same crate either. Order commits bottom-up through the dependency chain (`dusk-merkle` before `poseidon-merkle`).
+Keep each commit focused on one logical concern. For dependent changes, order commits bottom-up through the dependency chain (`dusk-merkle` before `poseidon-merkle`).
 
 Canonical scopes:
 
@@ -125,9 +126,9 @@ Canonical scopes:
 |-------|----------------|
 | `dusk-merkle` | `dusk-merkle/` |
 | `poseidon-merkle` | `poseidon-merkle/` |
-| `workspace` | Root `Cargo.toml`, root Makefile |
-| `ci` | `.github/workflows/` |
-| `chore` | Makefile, rustfmt, etc. |
+| `workspace` | Root `Cargo.toml`, root `Makefile` |
+| `ci` | Root `.github/workflows/` |
+| `chore` | Build tooling, rustfmt, etc. |
 
 Examples:
 - `dusk-merkle: Add rkyv support for Opening`
@@ -136,4 +137,4 @@ Examples:
 
 ### Changelog
 
-Both crates have a `CHANGELOG.md`. Add entries under `[Unreleased]` using [keep-a-changelog](https://keepachangelog.com/) format. If a change traces to a GitHub issue, reference it as a link: `[#42](https://github.com/dusk-network/merkle/issues/42)`. Only link to GitHub issues — do not reference any other tracking system.
+Both crates have a `CHANGELOG.md`. Add entries under `[Unreleased]` using [keep-a-changelog](https://keepachangelog.com/) format. If a change traces to a GitHub issue, reference it as a link: `[#42](https://github.com/dusk-network/zk-tools/issues/42)`. Only link to GitHub issues — do not reference any other tracking system.

@@ -5,7 +5,7 @@ version = "0.9.0-rc.0"
 
 categories = ["data-structures", "no-std"]
 keywords = ["tree", "merkle", "poseidon", "data", "structure"]
-repository = "https://github.com/dusk-network/merkle"
+repository = "https://github.com/dusk-network/zk-tools"
 authors = [
     "Eduardo Leegwater Simões <eduardo@dusk.network>",
     "Moana Marcello <moana@dusk.network>",
