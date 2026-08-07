@@ -5,25 +5,28 @@
 // Copyright (c) DUSK NETWORK. All rights reserved.
 
 use dusk_merkle::Aggregate;
-use dusk_plonk::prelude::{BlsScalar, Composer, Constraint, Witness};
 use dusk_poseidon::{Domain, HashGadget};
+use dusk_zk_composer::prelude::{
+    BlsScalar, Composer, ComposerBackend, Constraint, Witness,
+};
 
 use crate::{ARITY, Opening};
 
 /// Builds the gadget for the poseidon opening and returns the computed
 /// root.
-pub fn opening_gadget<T, const H: usize>(
-    composer: &mut Composer,
+pub fn opening_gadget<T, B, const H: usize>(
+    composer: &mut Composer<B>,
     opening: &Opening<T, H>,
     leaf: Witness,
 ) -> Witness
 where
     T: Clone + Aggregate<ARITY>,
+    B: ComposerBackend,
 {
     // append the siblings and position to the circuit
-    let mut level_witnesses = [[Composer::ZERO; ARITY]; H];
+    let mut level_witnesses = [[Witness::ZERO; ARITY]; H];
     // if i == position: pos_bits[i] = 1 else: pos_bits[i] = 0
-    let mut pos_bits = [[Composer::ZERO; ARITY]; H];
+    let mut pos_bits = [[Witness::ZERO; ARITY]; H];
     for h in (0..H).rev() {
         let level = &opening.branch()[h];
         for (i, item) in level.iter().enumerate() {

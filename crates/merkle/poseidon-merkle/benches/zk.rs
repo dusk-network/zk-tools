@@ -54,7 +54,10 @@ impl OpeningCircuit {
 }
 
 impl Circuit for OpeningCircuit {
-    fn circuit(&self, composer: &mut Composer) -> Result<(), Error> {
+    fn circuit<B: ComposerBackend>(
+        &self,
+        composer: &mut Composer<B>,
+    ) -> Result<(), CircuitError> {
         // append the leaf and opening gadget to the circuit
         let leaf = composer.append_witness(self.leaf.hash);
         let computed_root = opening_gadget(composer, &self.opening, leaf);

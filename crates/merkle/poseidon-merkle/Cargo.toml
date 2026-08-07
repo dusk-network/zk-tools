@@ -20,7 +20,7 @@ dusk-bytes = "0.1"
 dusk-merkle = { version = "0.6.0-rc.0", path = "../dusk-merkle", default-features = false }
 dusk-poseidon = { version = "0.42.0-rc.0", path = "../../poseidon", default-features = false }
 dusk-curves = { version = "=0.2.1", default-features = false }
-dusk-plonk = { version = "0.22.0-rc.0", path = "../../plonk", optional = true, default-features = false }
+dusk-zk-composer = { version = "0.1.0", path = "../../composer", optional = true, default-features = false }
 rkyv = { version = "0.7", optional = true, default-features = false }
 bytecheck = { version = "0.6", optional = true, default-features = false }
 
@@ -28,20 +28,21 @@ bytecheck = { version = "0.6", optional = true, default-features = false }
 rand = "0.8"
 criterion = "0.3"
 ff = { version = "0.13", default-features = false }
+dusk-plonk = { version = "0.22.1", path = "../../plonk", default-features = false, features = ["alloc"] }
 
 [features]
 default = []
 bls-backend-dusk = [
     "dusk-curves/bls-backend-dusk",
     "dusk-poseidon/bls-backend-dusk",
-    "dusk-plonk?/bls-backend-dusk",
+    "dusk-zk-composer?/bls-backend-dusk",
 ]
 bls-backend-blst = [
     "dusk-curves/bls-backend-blst",
     "dusk-poseidon/bls-backend-blst",
-    "dusk-plonk?/bls-backend-blst",
+    "dusk-zk-composer?/bls-backend-blst",
 ]
-zk = ["dusk-plonk/alloc", "dusk-poseidon/zk"]
+zk = ["dusk-zk-composer/alloc", "dusk-poseidon/zk"]
 size_16 = ["rkyv/size_16"]
 size_32 = ["rkyv/size_32"]
 size_64 = ["rkyv/size_64"]
