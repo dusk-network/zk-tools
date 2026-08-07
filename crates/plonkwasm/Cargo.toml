@@ -14,7 +14,7 @@ include = ["Cargo.toml", "LICENSE", "README.md", "src/**/*.rs", "tests/**/*.rs"]
 
 [dependencies]
 dusk-bytes = "0.1"
-dusk-plonk = { version = "=0.23.0", default-features = false, features = ["alloc"] }
+dusk-plonk = { path = "../plonk", default-features = false, features = ["alloc"] }
 rand_chacha = "0.3"
 rand_core = "0.6"
 serde = { version = "1", features = ["derive"] }
@@ -29,3 +29,7 @@ bls-backend-dusk = ["dusk-plonk/bls-backend-dusk"]
 # feature that toggles parallel code). Enabling `dusk-plonk/std` is therefore
 # required for the wasm build to actually run anything in parallel.
 wasm-rayon = ["dusk-plonk/std"]
+
+[package.metadata.docs.rs]
+no-default-features = true
+features = ["bls-backend-blst"]
