@@ -62,12 +62,12 @@ impl SignatureCircuit {
 impl Circuit for SignatureCircuit {
     fn circuit(&self, composer: &mut Composer) -> Result<(), PlonkError> {
         let u = composer.append_witness(*self.signature.u());
-        let r = composer.append_point(self.signature.R());
+        let r = composer.append_point(*self.signature.R())?;
 
-        let pk = composer.append_point(self.pk.as_ref());
+        let pk = composer.append_point(*self.pk.as_ref())?;
         let m = composer.append_witness(self.message);
 
-        let _result = gadgets::verify_signature(composer, u, r, pk, m);
+        gadgets::verify_signature(composer, u, r, pk, m)?;
 
         CONSTRAINTS.store(composer.constraints(), Ordering::Relaxed);
 

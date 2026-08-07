@@ -64,14 +64,13 @@ impl SigVarGenCircuit {
 impl Circuit for SigVarGenCircuit {
     fn circuit(&self, composer: &mut Composer) -> Result<(), PlonkError> {
         let u = composer.append_witness(*self.signature.u());
-        let r = composer.append_point(self.signature.R());
+        let r = composer.append_point(*self.signature.R())?;
 
-        let pk = composer.append_point(self.pk.public_key());
-        let generator = composer.append_point(self.pk.generator());
+        let pk = composer.append_point(*self.pk.public_key())?;
+        let generator = composer.append_point(*self.pk.generator())?;
         let m = composer.append_witness(self.message);
 
-        let _result =
-            gadgets::verify_signature_var_gen(composer, u, r, pk, generator, m);
+        gadgets::verify_signature_var_gen(composer, u, r, pk, generator, m)?;
 
         CONSTRAINTS.store(composer.constraints(), Ordering::Relaxed);
 

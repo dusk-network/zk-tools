@@ -12,6 +12,37 @@ use dusk_jubjub::{GENERATOR_EXTENDED, GENERATOR_NUMS_EXTENDED};
 use dusk_plonk::prelude::*;
 use dusk_poseidon::{Domain, HashGadget};
 
+fn assert_not_identity(composer: &mut Composer, y: Witness) {
+    // For an on-curve JubJub point, y != 1 is equivalent to requiring a
+    // non-identity point. Enforce it with an inverse witness:
+    // (y - 1) * inverse = 1.
+    let inverse = (composer[y] - BlsScalar::one())
+        .invert()
+        .unwrap_or(BlsScalar::zero());
+    let inverse = composer.append_witness(inverse);
+    composer.append_gate(
+        Constraint::new()
+            .mult(1)
+            .a(y)
+            .right(-BlsScalar::one())
+            .b(inverse)
+            .constant(-BlsScalar::one()),
+    );
+}
+
+fn assert_valid_point(
+    composer: &mut Composer,
+    point: WitnessPoint,
+) -> TorsionFreeWitnessPoint {
+    let point = composer.assert_torsion_free_point(point);
+
+    // A torsion-free point may still be the identity, which is not a valid
+    // Schnorr public key or variable generator.
+    assert_not_identity(composer, *point.y());
+
+    point
+}
+
 /// Verifies a single-key Schnorr signature [`Signature`]within a Plonk circuit
 /// without requiring the secret key as a witness.
 ///
@@ -48,6 +79,9 @@ pub fn verify_signature(
     pk: WitnessPoint,
     msg: Witness,
 ) -> Result<(), Error> {
+    let pk = assert_valid_point(composer, pk);
+    assert_not_identity(composer, *r.y());
+
     let r_x = *r.x();
     let r_y = *r.y();
 
@@ -62,7 +96,7 @@ pub fn verify_signature(
     let s_b = composer.component_mul_point(challenge_hash, pk);
     let point = composer.component_add_point(s_a, s_b);
 
-    composer.assert_equal_point(r, point);
+    composer.assert_equal_point(r, point.into());
 
     Ok(())
 }
@@ -104,6 +138,11 @@ pub fn verify_signature_double(
     pk_p: WitnessPoint,
     msg: Witness,
 ) -> Result<(), Error> {
+    let pk = assert_valid_point(composer, pk);
+    let pk_p = assert_valid_point(composer, pk_p);
+    assert_not_identity(composer, *r.y());
+    assert_not_identity(composer, *r_p.y());
+
     let r_x = *r.x();
     let r_y = *r.y();
 
@@ -125,8 +164,8 @@ pub fn verify_signature_double(
     let s_p_b = composer.component_mul_point(challenge_hash, pk_p);
     let point_p = composer.component_add_point(s_p_a, s_p_b);
 
-    composer.assert_equal_point(r, point);
-    composer.assert_equal_point(r_p, point_p);
+    composer.assert_equal_point(r, point.into());
+    composer.assert_equal_point(r_p, point_p.into());
 
     Ok(())
 }
@@ -169,6 +208,10 @@ pub fn verify_signature_var_gen(
     generator: WitnessPoint,
     msg: Witness,
 ) -> Result<(), Error> {
+    let pk = assert_valid_point(composer, pk);
+    let generator = assert_valid_point(composer, generator);
+    assert_not_identity(composer, *r.y());
+
     let r_x = *r.x();
     let r_y = *r.y();
 
@@ -186,7 +229,7 @@ pub fn verify_signature_var_gen(
     let s_b = composer.component_mul_point(challenge_hash, pk);
     let point = composer.component_add_point(s_a, s_b);
 
-    composer.assert_equal_point(r, point);
+    composer.assert_equal_point(r, point.into());
 
     Ok(())
 }
