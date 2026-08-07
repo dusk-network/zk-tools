@@ -22,12 +22,11 @@
 use alloc::vec::Vec;
 
 use dusk_curves::bls12_381::BlsScalar;
+use dusk_zk_composer::test_support::recompose_bits;
 use rand::rngs::StdRng;
 
-use crate::composer::bits::recompose_bits;
-use crate::composer::{Circuit, Composer, Gate};
 use crate::error::Error;
-use crate::prelude::{Prover, Verifier};
+use crate::prelude::{Circuit, Composer, Gate, Plonkish, Prover, Verifier};
 
 /// `2^num_bits` as a field element.
 pub(super) fn pow(num_bits: usize) -> BlsScalar {
@@ -51,9 +50,9 @@ pub(super) fn fits(x: BlsScalar, num_bits: usize) -> bool {
 /// `PartialEq`, so comparing these vectors compares the whole constraint
 /// system, which is what the compiled verifier key is derived from.
 pub(super) fn gate_layout<C: Circuit>(circuit: &C) -> Vec<Gate> {
-    let mut composer = Composer::initialized();
+    let mut composer = Composer::<Plonkish>::initialized();
     circuit.circuit(&mut composer).expect("circuit builds");
-    composer.constraints
+    composer.gates().to_vec()
 }
 
 /// Fold a gate vector (selectors AND wiring) into a single field element: a
@@ -63,48 +62,27 @@ pub(super) fn gate_layout<C: Circuit>(circuit: &C) -> Vec<Gate> {
 /// layout fingerprint, not a cryptographic hash — collisions are irrelevant
 /// because the inputs are not adversarial, only accidentally-drifting layouts.
 ///
-/// `Gate` is destructured exhaustively on purpose: the golden test leans on the
-/// converse of the digest's contract — an unchanged digest meaning an unchanged
-/// verifier key — which only holds while every field is folded in. A field
-/// added to `Gate` must fail to compile here, not silently drop out.
+/// All public selectors and wires are folded in the backend-facing order.
 pub(super) fn gate_digest(gates: &[Gate]) -> [u8; 32] {
     let mult = BlsScalar::from(1_000_003u64);
     let mut acc = BlsScalar::zero();
     for gate in gates {
-        let Gate {
-            q_m,
-            q_l,
-            q_r,
-            q_o,
-            q_f,
-            q_c,
-            q_arith,
-            q_range,
-            q_logic,
-            q_fixed_group_add,
-            q_variable_group_add,
-            a,
-            b,
-            c,
-            d,
-        } = gate;
-
         for selector in [
-            q_m,
-            q_l,
-            q_r,
-            q_o,
-            q_f,
-            q_c,
-            q_arith,
-            q_range,
-            q_logic,
-            q_fixed_group_add,
-            q_variable_group_add,
+            gate.q_m(),
+            gate.q_l(),
+            gate.q_r(),
+            gate.q_o(),
+            gate.q_f(),
+            gate.q_c(),
+            gate.q_arith(),
+            gate.q_range(),
+            gate.q_logic(),
+            gate.q_fixed_group_add(),
+            gate.q_variable_group_add(),
         ] {
             acc = acc * mult + selector;
         }
-        for wire in [a, b, c, d] {
+        for wire in gate.wires() {
             acc = acc * mult + BlsScalar::from(wire.index() as u64);
         }
     }

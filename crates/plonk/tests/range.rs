@@ -26,7 +26,10 @@ fn range() {
     }
 
     impl<const BITS: usize> Circuit for TestCircuit<BITS> {
-        fn circuit(&self, composer: &mut Composer) -> Result<(), Error> {
+        fn circuit<B: ComposerBackend>(
+            &self,
+            composer: &mut Composer<B>,
+        ) -> Result<(), CircuitError> {
             let w_a = composer.append_witness(self.a);
 
             composer.component_range_bits::<BITS>(w_a);

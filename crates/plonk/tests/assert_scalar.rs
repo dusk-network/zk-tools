@@ -38,7 +38,10 @@ fn assert_equal() {
     }
 
     impl Circuit for TestCircuit {
-        fn circuit(&self, composer: &mut Composer) -> Result<(), Error> {
+        fn circuit<B: ComposerBackend>(
+            &self,
+            composer: &mut Composer<B>,
+        ) -> Result<(), CircuitError> {
             let w_scalar_a = composer.append_witness(self.scalar_a);
             let w_scalar_b = composer.append_witness(self.scalar_b);
 
@@ -124,7 +127,10 @@ fn assert_equal_constant() {
     }
 
     impl Circuit for TestCircuit {
-        fn circuit(&self, composer: &mut Composer) -> Result<(), Error> {
+        fn circuit<B: ComposerBackend>(
+            &self,
+            composer: &mut Composer<B>,
+        ) -> Result<(), CircuitError> {
             let w_scalar = composer.append_witness(self.scalar);
 
             composer.assert_equal_constant(

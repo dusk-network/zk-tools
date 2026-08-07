@@ -32,7 +32,10 @@ impl<const N: usize> Default for TruncCircuit<N> {
 }
 
 impl<const N: usize> Circuit for TruncCircuit<N> {
-    fn circuit(&self, composer: &mut Composer) -> Result<(), Error> {
+    fn circuit<B: ComposerBackend>(
+        &self,
+        composer: &mut Composer<B>,
+    ) -> Result<(), CircuitError> {
         let witness = composer.append_witness(self.input);
         let low = composer.component_truncate::<N>(witness);
         let pi = composer.append_public(self.claimed_low);

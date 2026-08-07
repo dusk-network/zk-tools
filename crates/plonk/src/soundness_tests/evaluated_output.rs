@@ -23,10 +23,9 @@ use rand::SeedableRng;
 use rand::rngs::StdRng;
 
 use super::support::{assert_rejected, assert_verifies};
-use crate::composer::{Circuit, Composer, Constraint, Witness};
-use crate::error::Error;
 use crate::prelude::{
-    Compiler, PlonkVersion, Prover, PublicParameters, Verifier,
+    Circuit, CircuitError, Compiler, Composer, ComposerBackend, Constraint,
+    PlonkVersion, Plonkish, Prover, PublicParameters, Verifier, Witness,
 };
 
 fn sum_constraint(a: Witness, b: Witness, output: BlsScalar) -> Constraint {
@@ -53,7 +52,10 @@ impl Default for DirectOutputCircuit {
 }
 
 impl Circuit for DirectOutputCircuit {
-    fn circuit(&self, composer: &mut Composer) -> Result<(), Error> {
+    fn circuit<B: ComposerBackend>(
+        &self,
+        composer: &mut Composer<B>,
+    ) -> Result<(), CircuitError> {
         let a = composer.append_public(self.a);
         let b = composer.append_public(self.b);
         let constraint = sum_constraint(a, b, -BlsScalar::one());
@@ -144,11 +146,11 @@ fn assert_helper_row(
     output_selector: BlsScalar,
     expected_output: Option<BlsScalar>,
 ) {
-    let mut composer = Composer::initialized();
+    let mut composer = Composer::<Plonkish>::initialized();
     let a = composer.append_witness(a_value);
     let b = composer.append_witness(b_value);
-    let constraints_before = composer.constraints.len();
-    let witnesses_before = composer.witnesses.len();
+    let constraints_before = composer.constraints();
+    let witnesses_before = composer.witness_count();
 
     let constraint = Constraint::new()
         .left(left)
@@ -159,31 +161,31 @@ fn assert_helper_row(
     let output = composer.append_evaluated_output(constraint);
 
     assert_eq!(
-        composer.constraints.len(),
+        composer.constraints(),
         constraints_before + 1,
         "the helper must append exactly one row",
     );
-    let gate = composer.constraints.last().expect("appended row");
-    assert_eq!(gate.q_arith, BlsScalar::one());
-    assert_eq!(gate.q_range, BlsScalar::zero());
-    assert_eq!(gate.q_logic, BlsScalar::zero());
-    assert_eq!(gate.q_fixed_group_add, BlsScalar::zero());
-    assert_eq!(gate.q_variable_group_add, BlsScalar::zero());
-    assert_eq!(gate.q_l, left);
-    assert_eq!(gate.q_r, right);
-    assert_eq!(gate.q_o, output_selector);
-    assert_eq!(gate.a, a);
-    assert_eq!(gate.b, b);
+    let gate = composer.gates().last().expect("appended row");
+    assert_eq!(*gate.q_arith(), BlsScalar::one());
+    assert_eq!(*gate.q_range(), BlsScalar::zero());
+    assert_eq!(*gate.q_logic(), BlsScalar::zero());
+    assert_eq!(*gate.q_fixed_group_add(), BlsScalar::zero());
+    assert_eq!(*gate.q_variable_group_add(), BlsScalar::zero());
+    assert_eq!(*gate.q_l(), left);
+    assert_eq!(*gate.q_r(), right);
+    assert_eq!(*gate.q_o(), output_selector);
+    assert_eq!(gate.a(), a);
+    assert_eq!(gate.b(), b);
 
     match (output, expected_output) {
         (Some(output), Some(expected)) => {
-            assert_eq!(composer.witnesses.len(), witnesses_before + 1);
+            assert_eq!(composer.witness_count(), witnesses_before + 1);
             assert_eq!(composer[output], expected);
-            assert_eq!(gate.c, output);
+            assert_eq!(gate.c(), output);
         }
         (None, None) => {
-            assert_eq!(composer.witnesses.len(), witnesses_before);
-            assert_eq!(gate.c, Composer::ZERO);
+            assert_eq!(composer.witness_count(), witnesses_before);
+            assert_eq!(gate.c(), Witness::ZERO);
         }
         _ => panic!("output presence did not match selector invertibility"),
     }
@@ -240,31 +242,31 @@ fn helper_appends_one_row_for_every_output_selector_class() {
 
 #[test]
 fn wrappers_each_append_exactly_one_arithmetic_row() {
-    let mut add = Composer::initialized();
+    let mut add = Composer::<Plonkish>::initialized();
     let add_a = add.append_witness(BlsScalar::from(2u64));
     let add_b = add.append_witness(BlsScalar::from(3u64));
-    let add_before = add.constraints.len();
+    let add_before = add.constraints();
     let add_output =
         add.gate_add(Constraint::new().left(1).right(1).a(add_a).b(add_b));
-    assert_eq!(add.constraints.len(), add_before + 1);
-    let add_gate = add.constraints.last().expect("addition row");
-    assert_eq!(add_gate.q_arith, BlsScalar::one());
-    assert_eq!(add_gate.q_l, BlsScalar::one());
-    assert_eq!(add_gate.q_r, BlsScalar::one());
-    assert_eq!(add_gate.q_o, -BlsScalar::one());
-    assert_eq!(add_gate.c, add_output);
+    assert_eq!(add.constraints(), add_before + 1);
+    let add_gate = add.gates().last().expect("addition row");
+    assert_eq!(*add_gate.q_arith(), BlsScalar::one());
+    assert_eq!(*add_gate.q_l(), BlsScalar::one());
+    assert_eq!(*add_gate.q_r(), BlsScalar::one());
+    assert_eq!(*add_gate.q_o(), -BlsScalar::one());
+    assert_eq!(add_gate.c(), add_output);
     assert_eq!(add[add_output], BlsScalar::from(5u64));
 
-    let mut mul = Composer::initialized();
+    let mut mul = Composer::<Plonkish>::initialized();
     let mul_a = mul.append_witness(BlsScalar::from(2u64));
     let mul_b = mul.append_witness(BlsScalar::from(3u64));
-    let mul_before = mul.constraints.len();
+    let mul_before = mul.constraints();
     let mul_output = mul.gate_mul(Constraint::new().mult(1).a(mul_a).b(mul_b));
-    assert_eq!(mul.constraints.len(), mul_before + 1);
-    let mul_gate = mul.constraints.last().expect("multiplication row");
-    assert_eq!(mul_gate.q_arith, BlsScalar::one());
-    assert_eq!(mul_gate.q_m, BlsScalar::one());
-    assert_eq!(mul_gate.q_o, -BlsScalar::one());
-    assert_eq!(mul_gate.c, mul_output);
+    assert_eq!(mul.constraints(), mul_before + 1);
+    let mul_gate = mul.gates().last().expect("multiplication row");
+    assert_eq!(*mul_gate.q_arith(), BlsScalar::one());
+    assert_eq!(*mul_gate.q_m(), BlsScalar::one());
+    assert_eq!(*mul_gate.q_o(), -BlsScalar::one());
+    assert_eq!(mul_gate.c(), mul_output);
     assert_eq!(mul[mul_output], BlsScalar::from(6u64));
 }

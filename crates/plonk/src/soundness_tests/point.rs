@@ -47,18 +47,19 @@ use dusk_curves::bls12_381::BlsScalar;
 use dusk_jubjub::{
     EDWARDS_D, GENERATOR_EXTENDED, JubJubAffine, JubJubExtended, JubJubScalar,
 };
+use dusk_zk_composer::test_support::{
+    ComposerTestExt as _, EIGHT_INV, group_add_variable_base, witness_point,
+};
 use ff::Field;
 use rand::SeedableRng;
 use rand::rngs::StdRng;
 
 use super::support::{assert_rejected, assert_verifies, gate_digest};
-use crate::composer::point::EIGHT_INV;
-use crate::composer::{
-    Composer, Constraint, TorsionFreeWitnessPoint, Witness, WitnessPoint,
-};
 use crate::fft::{EvaluationDomain, Evaluations, Polynomial};
 use crate::prelude::{
-    Circuit, Compiler, Error, PlonkVersion, Prover, PublicParameters, Verifier,
+    Circuit, CircuitError, Compiler, Composer, ComposerBackend, Constraint,
+    PlonkVersion, Plonkish, Prover, PublicParameters, TorsionFreeWitnessPoint,
+    Verifier, Witness, WitnessPoint,
 };
 use crate::proof_system::widget::ecc::curve_addition;
 
@@ -165,8 +166,8 @@ impl Default for TorsionFreeCircuit {
 
 /// Emit the exact gate `gate_mul` emits for `a · b`, but with the output
 /// witness assigned an attacker-chosen `value` instead of the product.
-fn forged_mul(
-    composer: &mut Composer,
+fn forged_mul<B: ComposerBackend>(
+    composer: &mut Composer<B>,
     a: Witness,
     b: Witness,
     value: BlsScalar,
@@ -187,8 +188,8 @@ fn forged_mul(
 /// output witnesses assigned the attacker-chosen point `s` instead of the
 /// doubling's result. The `x_1 · y_2` helper witness stays honest to isolate
 /// the output binding.
-fn forged_double(
-    composer: &mut Composer,
+fn forged_double<B: ComposerBackend>(
+    composer: &mut Composer<B>,
     q: WitnessPoint,
     s: JubJubAffine,
 ) -> WitnessPoint {
@@ -200,18 +201,21 @@ fn forged_double(
     let y3 = composer.append_witness(s.get_v());
 
     let constraint = Constraint::new().a(qu).b(qv).c(qu).d(qv);
-    let constraint = Constraint::group_add_variable_base(&constraint);
+    let constraint = group_add_variable_base(&constraint);
     composer.append_custom_gate(constraint);
 
     let constraint = Constraint::new().a(x3).b(y3).d(x1y2);
     composer.append_custom_gate(constraint);
 
-    WitnessPoint::new(x3, y3)
+    witness_point(x3, y3)
 }
 
 /// The honest on-curve row of `assert_torsion_free_gates`, emitted verbatim
 /// so the doubling-chain forgery keeps every other gate honestly satisfied.
-fn honest_on_curve_row(composer: &mut Composer, q: WitnessPoint) {
+fn honest_on_curve_row<B: ComposerBackend>(
+    composer: &mut Composer<B>,
+    q: WitnessPoint,
+) {
     let qu = *q.x();
     let qv = *q.y();
     let u2 = composer.gate_mul(Constraint::new().mult(1).a(qu).b(qu));
@@ -230,7 +234,10 @@ fn honest_on_curve_row(composer: &mut Composer, q: WitnessPoint) {
 }
 
 impl Circuit for TorsionFreeCircuit {
-    fn circuit(&self, composer: &mut Composer) -> Result<(), Error> {
+    fn circuit<B: ComposerBackend>(
+        &self,
+        composer: &mut Composer<B>,
+    ) -> Result<(), CircuitError> {
         let point = composer.append_point(self.point)?;
         match &self.mode {
             Mode::Honest => {
@@ -327,13 +334,13 @@ fn torsion_free_layout_matches_golden() {
         229, 225, 226, 228, 94, 68, 79, 22, 245, 233, 57, 1, 14, 37, 206, 53,
     ];
 
-    let mut composer = Composer::initialized();
+    let mut composer = Composer::<Plonkish>::initialized();
     let point = composer
         .append_point(prime_order_point())
         .expect("honest point");
     composer.assert_torsion_free_point(point);
     assert_eq!(
-        gate_digest(&composer.constraints),
+        gate_digest(composer.gates()),
         GOLDEN,
         "assert_torsion_free_point gate layout drifted — verifier keys of \
          every consumer circuit change",
@@ -356,7 +363,7 @@ fn mul_point_layout_matches_golden() {
         156, 68,
     ];
 
-    let mut composer = Composer::initialized();
+    let mut composer = Composer::<Plonkish>::initialized();
     let scalar = composer.append_witness(JubJubScalar::from(17u64));
     let point = composer
         .append_point(prime_order_point())
@@ -364,7 +371,7 @@ fn mul_point_layout_matches_golden() {
     let point = TorsionFreeWitnessPoint::new_unchecked(point);
     composer.component_mul_point(scalar, point);
     assert_eq!(
-        gate_digest(&composer.constraints),
+        gate_digest(composer.gates()),
         GOLDEN,
         "component_mul_point gate layout drifted — verifier keys of every \
          consumer circuit change",
@@ -376,7 +383,7 @@ fn mul_point_layout_matches_golden() {
 // they can enter the circuit description.
 #[test]
 fn constant_points_validated_natively() {
-    let mut composer = Composer::initialized();
+    let mut composer = Composer::<Plonkish>::initialized();
 
     assert!(composer.append_constant_point(prime_order_point()).is_ok());
     assert!(
@@ -393,7 +400,7 @@ fn constant_points_validated_natively() {
     ] {
         assert_eq!(
             composer.append_constant_point(point).unwrap_err(),
-            Error::JubJubPointNotTorsionFree,
+            CircuitError::JubJubPointNotTorsionFree,
         );
     }
 }
@@ -694,7 +701,10 @@ impl CurveAdditionCircuit {
 }
 
 impl Circuit for CurveAdditionCircuit {
-    fn circuit(&self, composer: &mut Composer) -> Result<(), Error> {
+    fn circuit<B: ComposerBackend>(
+        &self,
+        composer: &mut Composer<B>,
+    ) -> Result<(), CircuitError> {
         let a = composer.append_public_point(self.a)?;
         let b = composer.append_public_point(self.b)?;
 
@@ -727,14 +737,13 @@ impl Circuit for CurveAdditionCircuit {
 
                 let constraint =
                     Constraint::new().a(*a.x()).b(*a.y()).c(*b.x()).d(*b.y());
-                let constraint =
-                    Constraint::group_add_variable_base(&constraint);
+                let constraint = group_add_variable_base(&constraint);
                 composer.append_custom_gate(constraint);
 
                 let constraint = Constraint::new().a(x_3).b(y_3).d(x_1_y_2);
                 composer.append_custom_gate(constraint);
 
-                WitnessPoint::new(x_3, y_3)
+                witness_point(x_3, y_3)
             }
         };
 
@@ -896,7 +905,7 @@ fn component_add_point_layout_matches_golden() {
         127, 155, 191, 155, 9, 56, 184, 82, 223, 173, 215, 132, 79, 23, 42, 4,
     ];
 
-    let mut composer = Composer::initialized();
+    let mut composer = Composer::<Plonkish>::initialized();
     let a = composer
         .append_point(GENERATOR_EXTENDED)
         .expect("honest point");
@@ -909,7 +918,7 @@ fn component_add_point_layout_matches_golden() {
     );
 
     assert_eq!(
-        gate_digest(&composer.constraints),
+        gate_digest(composer.gates()),
         GOLDEN,
         "component_add_point's gate layout drifted from the deployed \
          verifier keys",

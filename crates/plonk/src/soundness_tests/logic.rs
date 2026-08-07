@@ -25,14 +25,17 @@
 use core::cmp;
 
 use dusk_curves::bls12_381::BlsScalar;
+use dusk_zk_composer::test_support::{
+    BitIterator8, ComposerTestExt as _, ConstraintTestExt as _,
+    Wire as WiredWitness,
+};
 use rand::SeedableRng;
 use rand::rngs::StdRng;
 
 use super::support::{assert_rejected, assert_verifies, fits, truncate};
-use crate::bit_iterator::BitIterator8;
-use crate::composer::{Composer, Constraint, WiredWitness, Witness};
 use crate::prelude::{
-    Circuit, Compiler, Error, Prover, PublicParameters, Verifier,
+    Circuit, CircuitError, Compiler, Composer, ComposerBackend, Constraint,
+    Plonkish, Prover, PublicParameters, Verifier, Witness,
 };
 
 // Inputs pinned to constants so they are identical for every prover. Both fit
@@ -54,15 +57,15 @@ fn input_b() -> BlsScalar {
 // It mirrors `append_logic_component` exactly so that, once that gadget binds
 // its accumulators to its inputs, this fork inherits the binding gates too and
 // the decoupled assignment becomes unsatisfiable.
-fn forge_logic_component<const BIT_PAIRS: usize>(
-    composer: &mut Composer,
+fn forge_logic_component<B: ComposerBackend, const BIT_PAIRS: usize>(
+    composer: &mut Composer<B>,
     a: Witness,
     b: Witness,
     forged: BlsScalar,
     is_component_xor: bool,
 ) -> Witness {
     let (d, left_acc_wit, right_acc_wit) =
-        forge_logic_loop::<BIT_PAIRS>(composer, b, forged, is_component_xor);
+        forge_logic_loop::<B, BIT_PAIRS>(composer, b, forged, is_component_xor);
 
     // Mirror the honest gadget's binding. The binding wires the REAL `a`/`b` to
     // the (forged) accumulators, so the forged assignment is now unsatisfiable.
@@ -80,8 +83,8 @@ fn forge_logic_component<const BIT_PAIRS: usize>(
 // as `append_logic_component` but sources the `a`-bits from `forged`. Returns
 // the output witness and the final left/right accumulator witnesses (so callers
 // can attach the binding gates of their choice). Does NOT bind the inputs.
-fn forge_logic_loop<const BIT_PAIRS: usize>(
-    composer: &mut Composer,
+fn forge_logic_loop<B: ComposerBackend, const BIT_PAIRS: usize>(
+    composer: &mut Composer<B>,
     b: Witness,
     forged: BlsScalar,
     is_component_xor: bool,
@@ -163,7 +166,10 @@ struct ForgeCircuit {
 }
 
 impl Circuit for ForgeCircuit {
-    fn circuit(&self, composer: &mut Composer) -> Result<(), Error> {
+    fn circuit<B: ComposerBackend>(
+        &self,
+        composer: &mut Composer<B>,
+    ) -> Result<(), CircuitError> {
         const BIT_PAIRS: usize = 16; // operate on the low 32 bits
 
         // Pin both inputs so they cannot differ between provers.
@@ -174,9 +180,9 @@ impl Circuit for ForgeCircuit {
 
         let result = match self.forged_a {
             None => composer.append_logic_xor::<BIT_PAIRS>(a, b),
-            Some(bits) => {
-                forge_logic_component::<BIT_PAIRS>(composer, a, b, bits, true)
-            }
+            Some(bits) => forge_logic_component::<B, BIT_PAIRS>(
+                composer, a, b, bits, true,
+            ),
         };
 
         // Expose the result as a public input.
@@ -268,7 +274,10 @@ struct WrapCircuit {
 }
 
 impl Circuit for WrapCircuit {
-    fn circuit(&self, composer: &mut Composer) -> Result<(), Error> {
+    fn circuit<B: ComposerBackend>(
+        &self,
+        composer: &mut Composer<B>,
+    ) -> Result<(), CircuitError> {
         const BIT_PAIRS: usize = 125; // 250-bit truncation
         const NUM_BITS: usize = 250;
         const HIGH_BITS: usize = 255 - NUM_BITS;
@@ -281,12 +290,13 @@ impl Circuit for WrapCircuit {
             // binding gates as the honest gadget, but force `high` to the wrap
             // value `high'` (the honest gadget would derive `high = 0` from
             // `a`).
-            let (d, left_acc_wit, right_acc_wit) = forge_logic_loop::<BIT_PAIRS>(
-                composer,
-                Composer::ZERO,
-                wrap_acc(),
-                true,
-            );
+            let (d, left_acc_wit, right_acc_wit) =
+                forge_logic_loop::<B, BIT_PAIRS>(
+                    composer,
+                    Composer::<B>::ZERO,
+                    wrap_acc(),
+                    true,
+                );
 
             let high = composer.append_witness(wrap_high());
             composer.range_check(high, HIGH_BITS);
@@ -309,13 +319,13 @@ impl Circuit for WrapCircuit {
 
             // `b = 0` is bound honestly.
             composer.bind_truncated_input::<BIT_PAIRS>(
-                Composer::ZERO,
+                Composer::<B>::ZERO,
                 right_acc_wit,
             );
 
             d
         } else {
-            composer.append_logic_xor::<BIT_PAIRS>(a, Composer::ZERO)
+            composer.append_logic_xor::<BIT_PAIRS>(a, Composer::<B>::ZERO)
         };
 
         let claimed = if self.wrap {
@@ -391,7 +401,7 @@ fn logic_xor_truncation_is_canonical() {
 fn append_logic_xor_wires_its_inputs() {
     const BIT_PAIRS: usize = 125; // 250-bit truncation, the Poseidon width
 
-    let mut composer = Composer::initialized();
+    let mut composer = Composer::<Plonkish>::initialized();
     let a = composer.append_witness(BlsScalar::from(0x0f0f_0ff0_u64));
     let b = composer.append_witness(BlsScalar::from(0xffff_0000_u64));
 
@@ -399,8 +409,8 @@ fn append_logic_xor_wires_its_inputs() {
 
     let mut a_wired = false;
     let mut b_wired = false;
-    for gate in &composer.constraints {
-        for wire in [gate.a, gate.b, gate.c, gate.d] {
+    for gate in composer.gates() {
+        for wire in gate.wires() {
             a_wired |= wire.index() == a.index();
             b_wired |= wire.index() == b.index();
         }

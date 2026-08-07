@@ -37,14 +37,14 @@
 //! `N = 251` to cover the odd-width range-check path.
 
 use dusk_curves::bls12_381::BlsScalar;
+use dusk_zk_composer::test_support::{ComposerTestExt as _, recompose_bits};
 use rand::SeedableRng;
 use rand::rngs::StdRng;
 
 use super::support::{assert_rejected, assert_verifies, fits, pow, truncate};
-use crate::composer::bits::recompose_bits;
-use crate::composer::{Composer, Constraint, Witness};
 use crate::prelude::{
-    Circuit, Compiler, Error, Prover, PublicParameters, Verifier,
+    Circuit, CircuitError, Compiler, Composer, ComposerBackend, Constraint,
+    Prover, PublicParameters, Verifier, Witness,
 };
 
 // An attacker's fork of [`Composer::component_truncate`]: byte-identical gate
@@ -53,8 +53,8 @@ use crate::prelude::{
 // prover emitting the honest gate layout while filling the witnesses with
 // values that decouple the output from the input. Because the gadget binds
 // `low`/`high` to `witness`, any such decoupled assignment is unsatisfiable.
-fn forge_truncate<const N: usize>(
-    composer: &mut Composer,
+fn forge_truncate<B: ComposerBackend, const N: usize>(
+    composer: &mut Composer<B>,
     witness: Witness,
     forged_low: BlsScalar,
     forged_high: BlsScalar,
@@ -108,14 +108,20 @@ impl<const N: usize> Default for TruncCircuit<N> {
 }
 
 impl<const N: usize> Circuit for TruncCircuit<N> {
-    fn circuit(&self, composer: &mut Composer) -> Result<(), Error> {
+    fn circuit<B: ComposerBackend>(
+        &self,
+        composer: &mut Composer<B>,
+    ) -> Result<(), CircuitError> {
         let witness = composer.append_public(self.input);
 
         let low = match self.forge {
             None => composer.component_truncate::<N>(witness),
-            Some((forged_low, forged_high)) => {
-                forge_truncate::<N>(composer, witness, forged_low, forged_high)
-            }
+            Some((forged_low, forged_high)) => forge_truncate::<B, N>(
+                composer,
+                witness,
+                forged_low,
+                forged_high,
+            ),
         };
 
         let pi = composer.append_public(self.claimed_low);

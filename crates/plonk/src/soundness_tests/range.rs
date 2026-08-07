@@ -19,13 +19,14 @@
 //! deployed keys were generated against.
 
 use dusk_curves::bls12_381::BlsScalar;
+use dusk_zk_composer::test_support::ComposerTestExt as _;
 use rand::SeedableRng;
 use rand::rngs::StdRng;
 
 use super::support::{assert_rejected, assert_verifies, gate_digest};
-use crate::composer::Composer;
 use crate::prelude::{
-    Circuit, Compiler, Error, Prover, PublicParameters, Verifier,
+    Circuit, CircuitError, Compiler, Composer, ComposerBackend, Plonkish,
+    Prover, PublicParameters, Verifier,
 };
 
 // A bare range check, used to pin `range_check`'s bounds directly.
@@ -42,7 +43,10 @@ impl<const NUM_BITS: usize> Default for RangeCircuit<NUM_BITS> {
 }
 
 impl<const NUM_BITS: usize> Circuit for RangeCircuit<NUM_BITS> {
-    fn circuit(&self, composer: &mut Composer) -> Result<(), Error> {
+    fn circuit<B: ComposerBackend>(
+        &self,
+        composer: &mut Composer<B>,
+    ) -> Result<(), CircuitError> {
         let value = composer.append_witness(self.value);
         composer.range_check(value, NUM_BITS);
         Ok(())
@@ -105,17 +109,17 @@ fn component_range_migration_is_gate_identical() {
 
     macro_rules! assert_layout_eq {
         ($bit_pairs:literal) => {{
-            let mut bit_pairs = Composer::initialized();
+            let mut bit_pairs = Composer::<Plonkish>::initialized();
             let w = bit_pairs.append_witness(value);
             bit_pairs.component_range::<$bit_pairs>(w);
 
-            let mut bits = Composer::initialized();
+            let mut bits = Composer::<Plonkish>::initialized();
             let w = bits.append_witness(value);
             bits.component_range_bits::<{ $bit_pairs * 2 }>(w);
 
             assert_eq!(
-                bit_pairs.constraints,
-                bits.constraints,
+                bit_pairs.gates(),
+                bits.gates(),
                 "component_range::<{}> must match component_range_bits::<{}>",
                 $bit_pairs,
                 $bit_pairs * 2,
@@ -167,11 +171,11 @@ fn component_range_layout_matches_deployed_golden() {
 
     macro_rules! assert_golden_eq {
         ($bit_pairs:literal, $expected:expr) => {{
-            let mut composer = Composer::initialized();
+            let mut composer = Composer::<Plonkish>::initialized();
             let witness = composer.append_witness(-BlsScalar::one());
             composer.component_range::<$bit_pairs>(witness);
             assert_eq!(
-                gate_digest(&composer.constraints),
+                gate_digest(composer.gates()),
                 $expected,
                 "component_range::<{}> gate layout drifted from the deployed \
                  verifier key",

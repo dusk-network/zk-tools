@@ -11,10 +11,23 @@ use dusk_curves::bls12_381::BlsScalar;
 use hashbrown::HashMap;
 use itertools::izip;
 
-use crate::composer::{WireData, Witness};
 use crate::fft::{EvaluationDomain, Polynomial};
+use crate::prelude::{Composer, Plonkish, Witness};
 
 pub(crate) mod constants;
+
+/// A wire position in a PLONK gate row.
+#[derive(Copy, Clone, PartialEq, Eq, Debug)]
+pub(crate) enum WireData {
+    /// Left wire.
+    Left(usize),
+    /// Right wire.
+    Right(usize),
+    /// Output wire.
+    Output(usize),
+    /// Fourth wire.
+    Fourth(usize),
+}
 
 /// Permutation provides the necessary state information and functions
 /// to create the permutation polynomial. In the literature, Z(X) is the
@@ -27,6 +40,7 @@ pub(crate) struct Permutation {
 
 impl Permutation {
     /// Creates a Permutation struct with an expected capacity of zero.
+    #[cfg(test)]
     pub(crate) fn new() -> Permutation {
         Permutation::with_capacity(0)
     }
@@ -38,14 +52,33 @@ impl Permutation {
         }
     }
 
+    /// Reconstruct PLONK's permutation map from a shared Composer layout.
+    pub(crate) fn from_composer(composer: &Composer<Plonkish>) -> Self {
+        let mut permutation = Self::with_capacity(composer.witness_count());
+
+        for (gate_index, gate) in composer.gates().iter().enumerate() {
+            permutation.add_witnesses_to_map(
+                gate.a(),
+                gate.b(),
+                gate.c(),
+                gate.d(),
+                gate_index,
+            );
+        }
+
+        permutation
+    }
+
     /// Creates a new [`Witness`] by incrementing the index of the
     /// `witness_map`.
     ///
     /// This is correct as whenever we add a new [`Witness`] into the system It
     /// is always allocated in the `witness_map`.
+    #[cfg(test)]
     pub(crate) fn new_witness(&mut self) -> Witness {
         // Generate the Witness
-        let var = Witness::new(self.witness_map.keys().len());
+        let var =
+            dusk_zk_composer::test_support::witness(self.witness_map.len());
 
         // Allocate space for the Witness on the witness_map
         // Each vector is initialized with a capacity of 16.
@@ -53,14 +86,6 @@ impl Permutation {
         self.witness_map.insert(var, Vec::with_capacity(16usize));
 
         var
-    }
-
-    /// Checks that the [`Witness`]s are valid by determining if they have been
-    /// added to the system
-    fn valid_witnesses(&self, witnesses: &[Witness]) -> bool {
-        witnesses
-            .iter()
-            .all(|var| self.witness_map.contains_key(var))
     }
 
     /// Maps a set of [`Witness`]s (a,b,c,d) to a set of [`Wire`](WireData)s
@@ -91,12 +116,10 @@ impl Permutation {
         var: T,
         wire_data: WireData,
     ) {
-        assert!(self.valid_witnesses(&[var.into()]));
-
-        // Since we always allocate space for the Vec of WireData when a
-        // Witness is added to the witness_map, this should never fail
-        let vec_wire_data = self.witness_map.get_mut(&var.into()).unwrap();
-        vec_wire_data.push(wire_data);
+        self.witness_map
+            .entry(var.into())
+            .or_insert_with(|| Vec::with_capacity(16))
+            .push(wire_data);
     }
 
     // Performs shift by one permutation and computes sigma_1, sigma_2 and

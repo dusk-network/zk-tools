@@ -24,18 +24,18 @@
 
 use dusk_curves::bls12_381::BlsScalar;
 use dusk_jubjub::{JubJubExtended, JubJubScalar};
+use dusk_zk_composer::test_support::{
+    ComposerTestExt as _, FIXED_BASE_LEADING_ZERO_ROUNDS,
+    FIXED_BASE_MAX_SOUND_WIDTH, FIXED_BASE_SIGNED_DIGIT_ROUNDS,
+    JUBJUB_SCALAR_BITS,
+};
 use rand::SeedableRng;
 use rand::rngs::StdRng;
 
 use super::support::{assert_rejected, assert_verifies};
-use crate::composer::Composer;
-use crate::composer::fixed_base::{
-    FIXED_BASE_LEADING_ZERO_ROUNDS, FIXED_BASE_MAX_SOUND_WIDTH,
-    FIXED_BASE_SIGNED_DIGIT_ROUNDS, JUBJUB_SCALAR_BITS,
-};
-use crate::error::Error;
 use crate::prelude::{
-    Circuit, Compiler, PlonkVersion, Prover, PublicParameters, Verifier,
+    Circuit, CircuitError, Compiler, Composer, ComposerBackend, PlonkVersion,
+    Prover, PublicParameters, Verifier,
 };
 
 // Canonical little-endian limbs of the BLS12-381 scalar-field modulus q.
@@ -164,7 +164,10 @@ impl FixedBaseCircuit {
 }
 
 impl Circuit for FixedBaseCircuit {
-    fn circuit(&self, composer: &mut Composer) -> Result<(), Error> {
+    fn circuit<B: ComposerBackend>(
+        &self,
+        composer: &mut Composer<B>,
+    ) -> Result<(), CircuitError> {
         let scalar = composer.append_public(self.scalar);
         let point = match &self.forged_digits {
             None => composer
