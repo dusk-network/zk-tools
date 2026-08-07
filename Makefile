@@ -5,55 +5,78 @@ help: ## Display this help screen
 		awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
 build: ## Build all workspace crates
-	cargo build --workspace
+	# Consumers select a backend explicitly; repository automation uses BLST.
+	cargo build --workspace --no-default-features --features=bls-backend-blst
 
 test: ## Run the supported test matrix for every workspace crate
-	cargo test -p dusk-plonk --release
+	# Keep repository tests on BLST while preserving both public backend features.
 	cargo test -p dusk-plonk --release \
-		--features=debug,rkyv-impl,rkyv/size_32,zeroize,legacy-proving
-	cargo test -p dusk-poseidon --release --all-features
+		--no-default-features \
+		--features=bls-backend-blst,std,debug,rkyv-impl,zeroize,legacy-proving
+	cargo test -p dusk-poseidon --release --no-default-features \
+		--features=bls-backend-blst,zk,encryption
 	$(MAKE) -C crates/merkle test
-	cargo test -p jubjub-schnorr --release --features=zk,alloc,serde
-	cargo test -p jubjub-schnorr --no-default-features
+	cargo test -p jubjub-schnorr --release --no-default-features \
+		--features=bls-backend-blst,zk,alloc,rkyv-impl,serde
+	cargo test -p plonkwasm --release --no-default-features \
+		--features=bls-backend-blst,wasm-rayon
 
 fmt: ## Format all workspace crates; use CHECK=1 to check only
 	cargo +nightly fmt --all $(if $(CHECK),-- --check,)
 
 clippy: ## Run the supported clippy matrix for every workspace crate
-	cargo clippy -p dusk-plonk --features=rkyv/size_32 --no-deps -- -D warnings
-	cargo clippy -p dusk-poseidon --all-features --no-deps -- -D warnings
-	cargo clippy -p dusk-poseidon --no-default-features --no-deps -- -D warnings
+	cargo clippy -p dusk-plonk --no-default-features \
+		--features=bls-backend-blst,std,rkyv-impl,zeroize,legacy-proving \
+		--no-deps -- -D warnings
+	cargo clippy -p dusk-poseidon --no-default-features \
+		--features=bls-backend-blst,zk,encryption --no-deps -- -D warnings
 	cargo clippy -p dusk-merkle --features=rkyv-impl,size_32 --no-deps -- -D warnings
-	cargo clippy -p dusk-merkle --no-default-features --no-deps -- -D warnings
-	cargo clippy -p poseidon-merkle --features=zk,rkyv-impl,size_32 --no-deps -- -D warnings
-	cargo clippy -p poseidon-merkle --no-default-features --no-deps -- -D warnings
+	cargo clippy -p poseidon-merkle --no-default-features \
+		--features=bls-backend-blst,zk,rkyv-impl,size_32 --no-deps -- -D warnings
 	cargo clippy -p jubjub-schnorr \
-		--features=rkyv/size_32,zk,alloc,serde --no-deps -- -D warnings
-	cargo clippy -p jubjub-schnorr --no-default-features --no-deps -- -D warnings
+		--no-default-features \
+		--features=bls-backend-blst,rkyv/size_32,zk,alloc,rkyv-impl,serde \
+		--no-deps -- -D warnings
+	cargo clippy -p plonkwasm --no-default-features \
+		--features=bls-backend-blst,wasm-rayon --no-deps -- -D warnings
 
-no-std: ## Check the bare-metal and WASM configurations
+no-std: ## Check bare-metal and WASM with the portable Dusk backend
 	$(MAKE) -C crates/plonk no-std
 	$(MAKE) -C crates/poseidon no-std
 	$(MAKE) -C crates/merkle no-std
 	$(MAKE) -C crates/jubjub-schnorr no-std
 
 build-benches: ## Compile benchmark targets without running them
-	cargo bench -p dusk-plonk --no-run
-	cargo bench -p dusk-poseidon --all-features --no-run
+	cargo bench -p dusk-plonk --no-default-features \
+		--features=bls-backend-blst,std --no-run
+	cargo bench -p dusk-poseidon --no-default-features \
+		--features=bls-backend-blst,zk,encryption --no-run
 	cargo bench -p dusk-merkle --features=rkyv-impl,size_32 --no-run
-	cargo bench -p poseidon-merkle --features=zk,rkyv-impl,size_32 --no-run
-	cargo bench -p jubjub-schnorr --features=zk --no-run
+	cargo bench -p poseidon-merkle --no-default-features \
+		--features=bls-backend-blst,zk,rkyv-impl,size_32 --no-run
+	cargo bench -p jubjub-schnorr --no-default-features \
+		--features=bls-backend-blst,zk --no-run
+	cargo bench -p plonkwasm --no-default-features \
+		--features=bls-backend-blst,wasm-rayon --no-run
 
 doc: ## Build documentation for every workspace crate
-	cargo rustdoc -p dusk-plonk --lib -- \
+	cargo rustdoc -p dusk-plonk --lib --no-default-features \
+		--features=bls-backend-blst,std -- \
 		--html-in-header crates/plonk/katex-header.html -D warnings
-	cargo doc -p dusk-poseidon --no-deps --all-features
-	cargo doc -p dusk-merkle -p poseidon-merkle --no-deps
+	cargo doc -p dusk-poseidon --no-deps --no-default-features \
+		--features=bls-backend-blst,zk,encryption
+	cargo doc -p dusk-merkle --no-deps
+	cargo doc -p poseidon-merkle --no-deps --no-default-features \
+		--features=bls-backend-blst
 	RUSTDOCFLAGS="--html-in-header crates/jubjub-schnorr/katex-header.html" \
-		cargo doc -p jubjub-schnorr --no-deps
+		cargo doc -p jubjub-schnorr --no-deps --no-default-features \
+		--features=bls-backend-blst,zk,alloc,serde
+	cargo doc -p plonkwasm --no-deps --no-default-features \
+		--features=bls-backend-blst
 
 examples: ## Build and run the PLONK example
-	cargo run --release -p dusk-plonk --example circuit
+	cargo run --release -p dusk-plonk --example circuit \
+		--no-default-features --features=bls-backend-blst,std
 
 clean: ## Remove workspace build artifacts
 	cargo clean
