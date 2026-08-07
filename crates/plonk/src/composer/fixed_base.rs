@@ -312,7 +312,19 @@ impl Composer {
     /// `(r - 1) - scalar < 2^252`; if `scalar >= r`, that subtraction
     /// underflows modulo the much larger BLS scalar-field modulus and cannot
     /// satisfy the range check.
-    fn assert_canonical_jubjub_scalar(&mut self, scalar: Witness) {
+    ///
+    /// Call this at the boundary of any circuit component that interprets a
+    /// field witness as a serialized [`JubJubScalar`]. Variable-base scalar
+    /// multiplication only needs the scalar modulo `r`, so it deliberately
+    /// does not impose this stricter representation constraint itself.
+    ///
+    /// # Circuit compatibility
+    ///
+    /// This method adds constraints and therefore changes the circuit shape.
+    /// Applications adding it to an existing circuit must regenerate
+    /// circuit-specific proving and verifier keys and cached circuit
+    /// descriptions. The universal SRS does not need regeneration.
+    pub fn assert_canonical_jubjub_scalar(&mut self, scalar: Witness) {
         self.range_check(scalar, JUBJUB_SCALAR_BITS);
 
         let max_jubjub_scalar = BlsScalar::from(-JubJubScalar::one());

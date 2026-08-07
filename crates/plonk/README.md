@@ -44,7 +44,7 @@ For more results, please run `cargo bench` to get a full report of benchmarks in
 
 ## Licensing
 
-This code is licensed under the Mozilla Public License Version 2.0 (MPL-2.0). Please see [LICENSE](LICENSE) for more information.
+This code is licensed under the Mozilla Public License Version 2.0 (MPL-2.0). Please see the [workspace license](https://github.com/dusk-network/zk-tools/blob/main/LICENSE) for more information.
 
 ## About
 
