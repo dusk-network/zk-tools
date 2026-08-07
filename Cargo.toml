@@ -9,8 +9,36 @@ members = [
 exclude = ["crates/plonkwasm"]
 resolver = "3"
 
-# Preserve dusk-plonk's upstream release-profile setting. Member package
-# profiles are ignored when Cargo builds through the root workspace, and the
-# optional CDF debugger needs symbols to resolve and embed caller source files.
+# Poseidon's development profile is intentionally optimized because its
+# cryptographic tests are prohibitively slow without optimization. Package
+# overrides can preserve these settings without affecting other members.
+[profile.dev.package.dusk-poseidon]
+opt-level = 3
+debug = false
+debug-assertions = false
+codegen-units = 16
+incremental = false
+overflow-checks = false
+
+# Use one explicit release policy for the cryptographic workspace. Cargo does
+# not permit panic strategy or LTO to vary in package-specific overrides.
+[profile.release]
+panic = "abort"
+codegen-units = 1
+lto = true
+
+# The optional CDF debugger needs symbols to resolve and embed caller source
+# files.
 [profile.release.package.dusk-plonk]
 debug = true
+
+# Preserve the imported PLONK benchmark profile as the workspace benchmark
+# policy so benchmark results remain comparable.
+[profile.bench]
+opt-level = 3
+debug = false
+debug-assertions = false
+overflow-checks = false
+lto = true
+incremental = false
+codegen-units = 1

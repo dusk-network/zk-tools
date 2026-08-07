@@ -109,9 +109,30 @@ two crates can be direct members of the root workspace. Consequently,
 expanded to the equivalent version-and-path dependency.
 
 `plonkwasm` is intentionally excluded from the root workspace and continues to
-use its published `dusk-plonk` dependency for now. No Rust source, test,
-benchmark, example, asset, crate version, feature, or cryptographic behavior
-was changed by the local-path integration.
+use its published `dusk-plonk` dependency for now.
+
+The local dependency graph exposed API and circuit-soundness differences
+between the imported revisions. The following post-import compatibility
+changes are intentionally part of the monorepo history:
+
+- `dusk-poseidon` uses `dusk-plonk`'s canonically bound 250-bit truncation
+  component. Native and circuit hash outputs are unchanged, but the circuit
+  layout changes.
+- `jubjub-schnorr` adapts to the fallible point-allocation API, constrains
+  prover-controlled public keys and variable generators to the prime-order
+  subgroup, rejects identity points where the native verifier does, and
+  constrains variable-generator responses to canonical JubJub scalars. These
+  are security-sensitive circuit changes.
+- Circuit tests and benchmarks are adapted to the current point, Poseidon, and
+  Merkle APIs. The Poseidon-Merkle benchmark data generation now uses the
+  public domain-separated hash API.
+- The PLONK debugger test preserves its caller's `CDF_OUTPUT` environment and
+  explicitly cleans up its temporary directory.
+
+These circuit-layout changes require regeneration of circuit-specific proving
+and verifier keys and cached circuit descriptions. They do not require a new
+universal SRS, provided the existing parameters have sufficient capacity.
+Crate versions and feature definitions remain unchanged.
 
 Nested upstream `.github/workflows/` files are omitted because GitHub Actions
 only discovers workflows in the repository-root `.github/workflows/`
@@ -124,3 +145,8 @@ The crate-local Cargo configurations that only supplied relative rustdoc
 header paths are also omitted. Cargo does not discover them when invoked from
 the workspace root, so the root Makefile supplies the correct workspace-relative
 paths for the affected documentation builds.
+
+Package profile sections from the imported PLONK and Poseidon manifests are
+defined at the workspace root because Cargo ignores member profiles. The root
+manifest documents the unified release and benchmark policy and retains
+Poseidon's optimized development build through a package override.

@@ -28,8 +28,8 @@ clippy: ## Run the supported clippy matrix for every workspace crate
 	cargo clippy -p poseidon-merkle --features=zk,rkyv-impl,size_32 --no-deps -- -D warnings
 	cargo clippy -p poseidon-merkle --no-default-features --no-deps -- -D warnings
 	cargo clippy -p jubjub-schnorr \
-		--features=rkyv/size_32,zk,alloc,serde --no-deps
-	cargo clippy -p jubjub-schnorr --no-default-features --no-deps
+		--features=rkyv/size_32,zk,alloc,serde --no-deps -- -D warnings
+	cargo clippy -p jubjub-schnorr --no-default-features --no-deps -- -D warnings
 
 no-std: ## Check the bare-metal and WASM configurations
 	$(MAKE) -C crates/plonk no-std

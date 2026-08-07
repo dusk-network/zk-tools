@@ -14,7 +14,7 @@ This repository contains cryptographic tools used to develop zero-knowledge appl
 
 The original repositories were imported with their relevant Git histories and relocated under `crates/`. Original revisions and provenance are recorded in [`UPSTREAMS.md`](UPSTREAMS.md), while [`docs/upstream-imports.md`](docs/upstream-imports.md) documents the reproducible transformations required for future synchronization.
 
-Notice that the dependencies of the imported crates have been updated to use local paths. Furthermore, take into account that changes can be applied to introduce new experimental features or improvements. 
+Notice that the dependencies of the imported crates have been updated to use local paths. Furthermore, take into account that changes can be applied to introduce new experimental features or improvements.
 
 > **⚠️ DISCLAIMER:** this workspace is currently experimental and intended for coordinated development. It is not published as a combined package, and the imported crates should not be released from this repository.
 
