@@ -24,6 +24,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Move to stable MSRV 1.85
 - Move to rust edition 2024
 
+### Fixed
+
+- Constrain circuit public keys and variable generators to the prime-order
+  subgroup and reject identity public keys, generators, and nonce points.
+- Constrain variable-generator signature responses to canonical JubJub
+  scalars, preventing `u + r` representation aliases.
+- These changes alter every Schnorr verification circuit layout. Regenerate
+  circuit-specific proving and verifier keys and cached circuit descriptions;
+  the universal SRS does not need regeneration.
+
 ## [0.6.0] - 2025-02-06
 
 ### Changed

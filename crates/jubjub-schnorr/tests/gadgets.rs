@@ -332,3 +332,79 @@ fn verify_signature_var_gen() {
         .prove(&mut rng, &circuit)
         .expect_err("Proving invalid circuit shouldn't be possible");
 }
+
+#[derive(Clone, Copy, Debug, Default)]
+struct VarGenScalarCircuit {
+    u: BlsScalar,
+    r: JubJubExtended,
+    pk: JubJubExtended,
+    generator: JubJubExtended,
+    message: BlsScalar,
+}
+
+impl VarGenScalarCircuit {
+    fn canonical_and_noncanonical(rng: &mut StdRng) -> (Self, Self) {
+        let sk = SecretKeyVarGen::random(rng);
+        let pk = PublicKeyVarGen::from(&sk);
+        let message = BlsScalar::random(&mut *rng);
+        let modulus = BlsScalar::from(-JubJubScalar::one()) + BlsScalar::one();
+
+        for _ in 0..1024 {
+            let signature = sk.sign(rng, message);
+            let u = BlsScalar::from(*signature.u());
+            let noncanonical_u = u + modulus;
+
+            // Variable-base multiplication decomposes 252 bits. Choose a
+            // response whose u + r alias still fits that range, so the
+            // canonicality constraint is the only reason it is rejected.
+            if noncanonical_u.to_bits()[252..].iter().all(|bit| *bit == 0) {
+                let canonical = Self {
+                    u,
+                    r: *signature.R(),
+                    pk: *pk.public_key(),
+                    generator: *pk.generator(),
+                    message,
+                };
+                let noncanonical = Self {
+                    u: noncanonical_u,
+                    ..canonical
+                };
+
+                return (canonical, noncanonical);
+            }
+        }
+
+        panic!("failed to sample a response with a 252-bit u + r alias");
+    }
+}
+
+impl Circuit for VarGenScalarCircuit {
+    fn circuit(&self, composer: &mut Composer) -> Result<(), PlonkError> {
+        let u = composer.append_witness(self.u);
+        let r = composer.append_point(self.r)?;
+        let pk = composer.append_point(self.pk)?;
+        let generator = composer.append_point(self.generator)?;
+        let message = composer.append_witness(self.message);
+
+        gadgets::verify_signature_var_gen(
+            composer, u, r, pk, generator, message,
+        )
+    }
+}
+
+#[test]
+fn verify_signature_var_gen_rejects_noncanonical_response() {
+    let mut rng = StdRng::seed_from_u64(0xcafe);
+    let (prover, _verifier) =
+        Compiler::compile::<VarGenScalarCircuit>(&PP, LABEL)
+            .expect("Circuit should compile successfully");
+    let (canonical, noncanonical) =
+        VarGenScalarCircuit::canonical_and_noncanonical(&mut rng);
+
+    prover
+        .prove(&mut rng, &canonical)
+        .expect("A canonical signature response should satisfy the circuit");
+    prover
+        .prove(&mut rng, &noncanonical)
+        .expect_err("A u + r response alias must not satisfy the circuit");
+}

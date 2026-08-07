@@ -186,7 +186,7 @@ pub fn sign_round_2(
         }
     }
 
-    let signer_pk = PublicKey::from(&*sk);
+    let signer_pk = PublicKey::from(sk);
     let d_i = delinearization_coeff(&signer_pk, pk_vec);
     let (a, c, _RSa) = multisig_common(pk_vec, R_vec, S_vec, msg);
 

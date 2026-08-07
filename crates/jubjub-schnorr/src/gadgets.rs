@@ -192,12 +192,13 @@ pub fn verify_signature_double(
 /// ### Returns
 ///
 /// - `Result<(), Error>`: Returns an empty `Result` on successful gadget
-///   creation or an `Error` if the witness `u` is not a valid [`JubJubScalar`].
+///   creation. The generated constraints require `u` to be a canonical
+///   [`JubJubScalar`].
 ///
 /// ### Errors
 ///
-/// This function will return an `Error` if the witness `u` is not a valid
-/// [`JubJubScalar`].
+/// This function currently has no host-side error path. A non-canonical `u`
+/// makes the circuit unsatisfiable.
 ///
 /// [`SignatureVarGen`]: [`crate::SignatureVarGen`]
 pub fn verify_signature_var_gen(
@@ -211,6 +212,7 @@ pub fn verify_signature_var_gen(
     let pk = assert_valid_point(composer, pk);
     let generator = assert_valid_point(composer, generator);
     assert_not_identity(composer, *r.y());
+    composer.assert_canonical_jubjub_scalar(u);
 
     let r_x = *r.x();
     let r_y = *r.y();
