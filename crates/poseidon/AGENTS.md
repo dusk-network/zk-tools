@@ -32,6 +32,9 @@ From the `zk-tools` repository root, run `make help` for the full target list.
 
 ### Features
 
+- `bls-backend-dusk` — pure-Rust BLS12-381 backend
+- `bls-backend-blst` — BLST BLS12-381 backend; mutually exclusive with the
+  Dusk backend
 - `zk` — PLONK circuit gadgets (gates `dusk-plonk`)
 - `encryption` — encrypt/decrypt module (gates `dusk-safe/encryption`)
 

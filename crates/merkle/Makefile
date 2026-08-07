@@ -23,10 +23,14 @@ fmt: ## Format code (requires nightly)
 	@cargo +nightly fmt --all $(if $(CHECK),-- --check,)
 
 check: ## Run cargo check
-	@cargo check
+	@cargo check -p dusk-merkle
+	@cargo check -p poseidon-merkle --no-default-features \
+		--features=bls-backend-blst
 
 doc: ## Generate documentation
-	@cargo doc --no-deps
+	@cargo doc -p dusk-merkle --no-deps
+	@cargo doc -p poseidon-merkle --no-deps --no-default-features \
+		--features=bls-backend-blst
 
 clean: ## Clean build artifacts
 	@cargo clean

@@ -5,8 +5,8 @@ members = [
     "crates/merkle/dusk-merkle",
     "crates/merkle/poseidon-merkle",
     "crates/jubjub-schnorr",
+    "crates/plonkwasm",
 ]
-exclude = ["crates/plonkwasm"]
 resolver = "3"
 
 # Poseidon's development profile is intentionally optimized because its

@@ -24,7 +24,7 @@
 
 use core::cmp;
 
-use dusk_bls12_381::BlsScalar;
+use dusk_curves::bls12_381::BlsScalar;
 use rand::SeedableRng;
 use rand::rngs::StdRng;
 

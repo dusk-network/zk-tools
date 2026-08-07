@@ -8,7 +8,7 @@
 //! the in-circuit bit decomposition, and the host-side recomposition of a bit
 //! slice into a field element.
 
-use dusk_bls12_381::BlsScalar;
+use dusk_curves::bls12_381::BlsScalar;
 
 use super::{Composer, Constraint, Witness};
 

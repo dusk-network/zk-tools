@@ -7,7 +7,7 @@
 use alloc::vec::Vec;
 
 use constants::{K1, K2, K3};
-use dusk_bls12_381::BlsScalar;
+use dusk_curves::bls12_381::BlsScalar;
 use hashbrown::HashMap;
 use itertools::izip;
 
@@ -302,7 +302,7 @@ impl Permutation {
 #[cfg(feature = "std")]
 #[cfg(test)]
 mod test {
-    use dusk_bls12_381::BlsScalar;
+    use dusk_curves::bls12_381::BlsScalar;
     use ff::Field;
     use rand_core::OsRng;
 

@@ -9,7 +9,7 @@
 use alloc::vec::Vec;
 use core::ops;
 
-use dusk_bls12_381::BlsScalar;
+use dusk_curves::bls12_381::BlsScalar;
 use hashbrown::HashMap;
 
 use crate::error::Error;

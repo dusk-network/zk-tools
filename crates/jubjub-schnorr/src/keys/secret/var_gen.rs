@@ -4,8 +4,8 @@
 //
 // Copyright (c) DUSK NETWORK. All rights reserved.
 
-use dusk_bls12_381::BlsScalar;
 use dusk_bytes::{Error, Serializable};
+use dusk_curves::bls12_381::BlsScalar;
 use dusk_jubjub::{
     GENERATOR_EXTENDED, JubJubAffine, JubJubExtended, JubJubScalar,
 };
@@ -178,7 +178,7 @@ impl SecretKeyVarGen {
     /// ```
     /// use jubjub_schnorr::{SecretKeyVarGen, PublicKeyVarGen};
     /// use dusk_jubjub::JubJubScalar;
-    /// use dusk_bls12_381::BlsScalar;
+    /// use dusk_curves::bls12_381::BlsScalar;
     /// use rand::rngs::StdRng;
     /// use rand::SeedableRng;
     /// use ff::Field;

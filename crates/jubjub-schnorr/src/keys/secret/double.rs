@@ -4,7 +4,7 @@
 //
 // Copyright (c) DUSK NETWORK. All rights reserved.
 
-use dusk_bls12_381::BlsScalar;
+use dusk_curves::bls12_381::BlsScalar;
 use dusk_jubjub::{GENERATOR_EXTENDED, GENERATOR_NUMS_EXTENDED};
 use rand_core::{CryptoRng, RngCore};
 
@@ -34,7 +34,7 @@ impl SecretKey {
     /// ```
     /// use jubjub_schnorr::{SecretKey, PublicKeyDouble};
     /// use dusk_jubjub::JubJubScalar;
-    /// use dusk_bls12_381::BlsScalar;
+    /// use dusk_curves::bls12_381::BlsScalar;
     /// use rand::rngs::StdRng;
     /// use rand::SeedableRng;
     /// use ff::Field;

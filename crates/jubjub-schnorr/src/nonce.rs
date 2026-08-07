@@ -11,7 +11,7 @@
 //! repeated RNG output *and* an identical (sk, message) pair —
 //! defending against weak or broken RNGs.
 
-use dusk_bls12_381::BlsScalar;
+use dusk_curves::bls12_381::BlsScalar;
 use dusk_jubjub::{JubJubExtended, JubJubScalar};
 use dusk_poseidon::{Domain, Hash};
 use ff::Field;

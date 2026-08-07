@@ -4,8 +4,8 @@
 //
 // Copyright (c) DUSK NETWORK. All rights reserved.
 
-use dusk_bls12_381::BlsScalar;
 use dusk_bytes::Serializable;
+use dusk_curves::bls12_381::BlsScalar;
 use dusk_jubjub::{GENERATOR_EXTENDED, JubJubScalar};
 use dusk_poseidon::{Domain, Hash};
 use ff::Field;

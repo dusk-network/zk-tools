@@ -116,12 +116,15 @@ While the basic Schnorr signature scheme is a widely recognized construct, the d
 ## Usage
 To integrate the `jubjub-schnorr` crate into your project, add it with the following command:
 ```bash
-cargo add jubjub-schnorr
+cargo add jubjub-schnorr --no-default-features --features bls-backend-blst
+cargo add dusk-curves --no-default-features --features bls-backend-blst
 ```
+
+Use `bls-backend-dusk` on both dependencies to select the pure-Rust backend.
 
 A basic example demonstrating how to generate and verify a Schnorr signature:
 ```rust
-use dusk_bls12_381::BlsScalar;
+use dusk_curves::bls12_381::BlsScalar;
 use jubjub_schnorr::{SecretKey};
 use rand::rngs::StdRng;
 use rand::SeedableRng;

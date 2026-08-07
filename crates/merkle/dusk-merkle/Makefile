@@ -3,7 +3,7 @@ help: ## Display this help screen
 		awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
 test: ## Run dusk-merkle tests
-	@cargo test --release -p dusk-merkle --features=rkyv-impl,size_32
+	@cargo test --release -p dusk-merkle --no-default-features --features=rkyv-impl,size_32
 
 no-std: ## Verify no_std compatibility on bare-metal target
 	@rustup target add thumbv6m-none-eabi

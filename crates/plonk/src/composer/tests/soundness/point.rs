@@ -43,7 +43,7 @@
 //! by struct literal makes a new field on it break the build here rather than
 //! silently weaken the pin.
 
-use dusk_bls12_381::BlsScalar;
+use dusk_curves::bls12_381::BlsScalar;
 use dusk_jubjub::{
     EDWARDS_D, GENERATOR_EXTENDED, JubJubAffine, JubJubExtended, JubJubScalar,
 };

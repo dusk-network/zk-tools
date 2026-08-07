@@ -4,8 +4,8 @@
 //
 // Copyright (c) DUSK NETWORK. All rights reserved.
 
-use dusk_bls12_381::BlsScalar;
 use dusk_bytes::Serializable;
+use dusk_curves::bls12_381::BlsScalar;
 use dusk_jubjub::{JubJubAffine, JubJubExtended};
 #[cfg(feature = "rkyv-impl")]
 use rkyv::{Archive, Deserialize, Serialize};
@@ -23,7 +23,7 @@ use crate::{Error, SecretKeyVarGen, SignatureVarGen};
 /// Generate a [`PublicKeyVarGen`] from a [`SecretKeyVarGen`]:
 /// ```
 /// use jubjub_schnorr::{SecretKeyVarGen, PublicKeyVarGen};
-/// use dusk_bls12_381::BlsScalar;
+/// use dusk_curves::bls12_381::BlsScalar;
 /// use rand::rngs::StdRng;
 /// use rand::SeedableRng;
 ///

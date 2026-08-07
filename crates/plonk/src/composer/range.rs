@@ -10,7 +10,7 @@
 use alloc::vec::Vec;
 use core::cmp;
 
-use dusk_bls12_381::BlsScalar;
+use dusk_curves::bls12_381::BlsScalar;
 
 use super::bits::recompose_bits;
 use super::{Composer, Constraint, WiredWitness, Witness};

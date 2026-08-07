@@ -20,7 +20,7 @@ blake2b_simd = { version = "=1.0.3", default-features = false }
 merlin = {version = "3.0", default-features = false}
 rand_core = {version="0.6", default-features=false}
 dusk-bytes = "0.1"
-dusk-bls12_381 = {version = "0.14", default-features = false, features = ["groups", "pairings"]}
+dusk-curves = { version = "=0.2.1", default-features = false }
 dusk-jubjub = {version = "0.15", default-features = false}
 ff = {version = "0.13", default-features = false}
 itertools = {version = "0.9", default-features = false}
@@ -41,14 +41,15 @@ zeroize = { version = "1", optional = true }
 criterion = "0.5"
 tempdir = "0.3"
 rand = "0.8"
-rkyv = {version = "0.7", default-features = false, features = ["size_32", "validation"]}
+rkyv = {version = "0.7", default-features = false, features = ["size_32"]}
 
 [features]
 default = ["std"]
+bls-backend-dusk = ["dusk-curves/bls-backend-dusk"]
+bls-backend-blst = ["dusk-curves/bls-backend-blst"]
 legacy-proving = []
 std = [
     "rand_core/std",
-    "dusk-bls12_381/default",  # Includes `parallel`
     "dusk-jubjub/default",
     "itertools/default",
     "hashbrown/default",
@@ -57,9 +58,10 @@ std = [
     "alloc",
     "rayon"
 ]
-alloc = ["dusk-bls12_381/alloc", "msgpacker", "miniz_oxide", "sha2"]
+alloc = ["msgpacker", "miniz_oxide", "sha2"]
+parallel = ["dusk-curves/parallel"]
 debug = ["dusk-cdf", "backtrace"]
-rkyv-impl = ["dusk-bls12_381/rkyv-impl", "dusk-jubjub/rkyv-impl", "rkyv", "bytecheck"]
+rkyv-impl = ["dusk-curves/rkyv-impl", "dusk-jubjub/rkyv-impl", "rkyv", "bytecheck"]
 
 [[example]]
 name = "circuit"
@@ -130,4 +132,6 @@ name = "truncate"
 required-features = ["alloc"]
 
 [package.metadata.docs.rs]
+no-default-features = true
+features = ["bls-backend-blst", "std"]
 rustdoc-args = [ "--html-in-header", "./katex-header.html" ]

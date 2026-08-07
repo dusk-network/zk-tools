@@ -4,8 +4,6 @@
 //
 // Copyright (c) DUSK NETWORK. All rights reserved.
 
-#![cfg(feature = "default")]
-
 use dusk_plonk::prelude::*;
 use rand::{CryptoRng, RngCore};
 

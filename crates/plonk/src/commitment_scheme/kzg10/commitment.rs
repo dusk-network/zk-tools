@@ -7,8 +7,8 @@
 //! Module containing the representation of a Commitment to a Polynomial.
 #[cfg(feature = "rkyv-impl")]
 use bytecheck::CheckBytes;
-use dusk_bls12_381::{G1Affine, G1Projective};
 use dusk_bytes::{DeserializableSlice, Serializable};
+use dusk_curves::bls12_381::{G1Affine, G1Projective};
 #[cfg(feature = "rkyv-impl")]
 use rkyv::{
     Archive, Deserialize, Serialize,
@@ -23,6 +23,12 @@ use rkyv::{
     derive(Archive, Deserialize, Serialize),
     archive(bound(serialize = "__S: Serializer + ScratchSpace")),
     archive_attr(derive(CheckBytes))
+)]
+#[cfg_attr(
+    all(feature = "rkyv-impl", feature = "bls-backend-blst"),
+    archive(bound(
+        deserialize = "__D::Error: From<dusk_curves::bls12_381::InvalidG1Affine>"
+    ))
 )]
 pub(crate) struct Commitment(
     /// The commitment is a group element.
@@ -75,7 +81,8 @@ mod commitment_tests {
 
     #[test]
     fn commitment_dusk_bytes_serde() {
-        let commitment = Commitment(dusk_bls12_381::G1Affine::generator());
+        let commitment =
+            Commitment(dusk_curves::bls12_381::G1Affine::generator());
         let bytes = commitment.to_bytes();
         let obtained_comm = Commitment::from_slice(&bytes)
             .expect("Error on the deserialization");

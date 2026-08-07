@@ -11,8 +11,8 @@
 //! Schnorr signatures, supporting both single and double signature schemes, as
 //! well as signatures with variable generators.
 
-use dusk_bls12_381::BlsScalar;
 use dusk_bytes::{Error, Serializable};
+use dusk_curves::bls12_381::BlsScalar;
 use dusk_jubjub::{GENERATOR_EXTENDED, JubJubScalar};
 use ff::Field;
 use rand_core::{CryptoRng, RngCore};
@@ -133,7 +133,7 @@ impl SecretKey {
     /// ```
     /// use jubjub_schnorr::{SecretKey, PublicKey};
     /// use dusk_jubjub::JubJubScalar;
-    /// use dusk_bls12_381::BlsScalar;
+    /// use dusk_curves::bls12_381::BlsScalar;
     /// use rand::rngs::StdRng;
     /// use rand::SeedableRng;
     /// use ff::Field;

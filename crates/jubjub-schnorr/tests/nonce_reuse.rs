@@ -12,7 +12,7 @@
 //! produces distinct nonces — making the classical nonce-reuse key
 //! recovery attack impossible.
 
-use dusk_bls12_381::BlsScalar;
+use dusk_curves::bls12_381::BlsScalar;
 use dusk_jubjub::{GENERATOR_EXTENDED, JubJubScalar};
 use ff::Field;
 use jubjub_schnorr::{PublicKey, PublicKeyVarGen, SecretKey};

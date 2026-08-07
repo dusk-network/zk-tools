@@ -56,7 +56,7 @@ impl<E: AsRef<[u8]>> Iterator for BitIterator8<E> {
 mod test {
     use alloc::vec::Vec;
 
-    use dusk_bls12_381::BlsScalar;
+    use dusk_curves::bls12_381::BlsScalar;
 
     use super::*;
 

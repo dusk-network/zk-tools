@@ -4,8 +4,8 @@
 //
 // Copyright (c) DUSK NETWORK. All rights reserved.
 
-use dusk_bls12_381::BlsScalar;
 use dusk_bytes::{DeserializableSlice, Error as BytesError, Serializable};
+use dusk_curves::bls12_381::BlsScalar;
 use dusk_jubjub::{JubJubAffine, JubJubExtended, JubJubScalar};
 use dusk_poseidon::{Domain, Hash};
 #[cfg(feature = "rkyv-impl")]
@@ -29,7 +29,7 @@ use crate::PublicKey;
 /// use rand::rngs::StdRng;
 /// use rand::SeedableRng;
 /// use jubjub_schnorr::{SecretKey, PublicKeyDouble, SignatureDouble};
-/// use dusk_bls12_381::BlsScalar;
+/// use dusk_curves::bls12_381::BlsScalar;
 /// use ff::Field;
 ///
 /// let mut rng = StdRng::seed_from_u64(2321u64);
@@ -51,11 +51,10 @@ use crate::PublicKey;
     derive(Archive, Deserialize, Serialize),
     archive_attr(derive(bytecheck::CheckBytes))
 )]
-#[allow(non_snake_case)]
 pub struct SignatureDouble {
     u: JubJubScalar,
-    R: JubJubExtended,
-    R_prime: JubJubExtended,
+    r: JubJubExtended,
+    r_prime: JubJubExtended,
 }
 
 impl SignatureDouble {
@@ -67,13 +66,13 @@ impl SignatureDouble {
     /// Returns the nonce point `R`
     #[allow(non_snake_case)]
     pub fn R(&self) -> &JubJubExtended {
-        &self.R
+        &self.r
     }
 
     /// Returns the nonce point `R_prime`
     #[allow(non_snake_case)]
     pub fn R_prime(&self) -> &JubJubExtended {
-        &self.R_prime
+        &self.r_prime
     }
 
     /// Creates a new [`SignatureDouble`]
@@ -83,7 +82,11 @@ impl SignatureDouble {
         R: JubJubExtended,
         R_prime: JubJubExtended,
     ) -> Self {
-        Self { u, R, R_prime }
+        Self {
+            u,
+            r: R,
+            r_prime: R_prime,
+        }
     }
 
     /// Returns true if the inner point is valid according to certain criteria.
@@ -95,14 +98,14 @@ impl SignatureDouble {
     /// 2. It is on the curve.
     /// 3. It is not the identity.
     pub fn is_valid(&self) -> bool {
-        let is_identity: bool = self.R.is_identity().into();
-        let r_is_valid = self.R.is_torsion_free().into()
-            && self.R.is_on_curve().into()
+        let is_identity: bool = self.r.is_identity().into();
+        let r_is_valid = self.r.is_torsion_free().into()
+            && self.r.is_on_curve().into()
             && !is_identity;
 
-        let is_identity: bool = self.R_prime.is_identity().into();
-        let r_prime_is_valid = self.R_prime.is_torsion_free().into()
-            && self.R_prime.is_on_curve().into()
+        let is_identity: bool = self.r_prime.is_identity().into();
+        let r_prime_is_valid = self.r_prime.is_torsion_free().into()
+            && self.r_prime.is_on_curve().into()
             && !is_identity;
         r_is_valid && r_prime_is_valid
     }
@@ -131,7 +134,11 @@ impl Serializable<96> for SignatureDouble {
         let R_prime: JubJubExtended =
             JubJubAffine::from_slice(&bytes[64..])?.into();
 
-        Ok(Self { u, R, R_prime })
+        Ok(Self {
+            u,
+            r: R,
+            r_prime: R_prime,
+        })
     }
 }
 

@@ -6,7 +6,7 @@
 
 #![cfg(feature = "serde")]
 
-use dusk_bls12_381::BlsScalar;
+use dusk_curves::bls12_381::BlsScalar;
 use ff::Field;
 use jubjub_schnorr::{
     PublicKey, PublicKeyDouble, PublicKeyVarGen, SecretKey, SecretKeyVarGen,

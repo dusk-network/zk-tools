@@ -9,11 +9,11 @@
 use std::env;
 use std::path::PathBuf;
 
-use dusk_bls12_381::BlsScalar;
 use dusk_cdf::{
     BaseConfig, Config, EncodableConstraint, EncodableSource, EncodableWitness,
     Encoder, EncoderContextFileProvider, Polynomial, Selectors, WiredWitnesses,
 };
+use dusk_curves::bls12_381::BlsScalar;
 use dusk_jubjub::EDWARDS_D;
 
 use crate::composer::{Constraint, Selector, WiredWitness, Witness};

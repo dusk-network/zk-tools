@@ -22,7 +22,7 @@
 //! them. The final test builds no circuit: it pins the width bound those
 //! constraints rely on to the field moduli by exact integer arithmetic.
 
-use dusk_bls12_381::BlsScalar;
+use dusk_curves::bls12_381::BlsScalar;
 use dusk_jubjub::{JubJubExtended, JubJubScalar};
 use rand::SeedableRng;
 use rand::rngs::StdRng;

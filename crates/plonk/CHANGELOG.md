@@ -22,6 +22,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Replace the direct `dusk-bls12_381` dependency with `dusk-curves` and require
+  consumers to select either the Dusk or BLST backend explicitly
+  ([#2](https://github.com/dusk-network/zk-tools/issues/2))
 - Change RKYV `PublicParameters` archives to store only canonical opening-key
   source points and rebuild prepared pairing values during deserialization.
   Existing RKYV parameter archives must be regenerated [#890]

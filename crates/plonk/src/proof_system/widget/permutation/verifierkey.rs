@@ -21,6 +21,12 @@ use crate::commitment_scheme::Commitment;
     archive(bound(serialize = "__S: Serializer + ScratchSpace")),
     archive_attr(derive(CheckBytes))
 )]
+#[cfg_attr(
+    all(feature = "rkyv-impl", feature = "bls-backend-blst"),
+    archive(bound(
+        deserialize = "__D::Error: From<dusk_curves::bls12_381::InvalidG1Affine>"
+    ))
+)]
 pub(crate) struct VerifierKey {
     #[cfg_attr(feature = "rkyv-impl", omit_bounds)]
     pub(crate) s_sigma_1: Commitment,
@@ -39,7 +45,7 @@ mod alloc {
     use crate::proof_system::linearization_poly::ProofEvaluations;
     #[rustfmt::skip]
     use ::alloc::vec::Vec;
-    use dusk_bls12_381::{BlsScalar, G1Affine};
+    use dusk_curves::bls12_381::{BlsScalar, G1Affine};
 
     impl VerifierKey {
         pub(crate) fn compute_linearization_commitment(

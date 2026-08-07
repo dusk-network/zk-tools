@@ -39,6 +39,9 @@ targets. Key points:
 
 ### Features
 
+- `bls-backend-dusk` — pure-Rust BLS12-381 backend
+- `bls-backend-blst` — BLST BLS12-381 backend; mutually exclusive with the
+  Dusk backend
 - `alloc` — heap allocation support
 - `zk` — PLONK circuit gadgets (pulls in `dusk-plonk`)
 - `rkyv-impl` — rkyv serialization

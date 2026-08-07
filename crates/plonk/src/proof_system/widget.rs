@@ -35,6 +35,12 @@ use crate::util::check_field;
     derive(Archive, Deserialize, Serialize),
     archive(bound(serialize = "__S: Serializer + ScratchSpace"))
 )]
+#[cfg_attr(
+    all(feature = "rkyv-impl", feature = "bls-backend-blst"),
+    archive(bound(
+        deserialize = "__D::Error: From<dusk_curves::bls12_381::InvalidG1Affine>"
+    ))
+)]
 pub struct VerifierKey {
     /// Circuit size (not padded to a power of two).
     #[cfg_attr(feature = "rkyv-impl", omit_bounds)]
@@ -204,7 +210,7 @@ pub(crate) mod alloc {
     use crate::transcript::TranscriptProtocol;
     #[rustfmt::skip]
     use ::alloc::vec::Vec;
-    use dusk_bls12_381::BlsScalar;
+    use dusk_curves::bls12_381::BlsScalar;
     use merlin::Transcript;
 
     impl VerifierKey {
@@ -614,7 +620,7 @@ pub(crate) mod alloc {
 #[cfg(feature = "alloc")]
 #[cfg(test)]
 mod test {
-    use dusk_bls12_381::BlsScalar;
+    use dusk_curves::bls12_381::BlsScalar;
 
     use super::alloc::ProverKey;
     use super::*;
@@ -761,7 +767,7 @@ mod test {
 
     #[test]
     fn test_serialize_deserialize_verifier_key() {
-        use dusk_bls12_381::G1Affine;
+        use dusk_curves::bls12_381::G1Affine;
 
         use crate::commitment_scheme::Commitment;
 
@@ -835,7 +841,7 @@ mod test {
 
     #[test]
     fn seed_transcript_binds_s_sigma_4_commitment() {
-        use dusk_bls12_381::G1Affine;
+        use dusk_curves::bls12_381::G1Affine;
         use merlin::Transcript;
 
         use crate::commitment_scheme::Commitment;

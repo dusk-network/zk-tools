@@ -36,7 +36,7 @@
 //! canonical-guard margin — the only width where `r_high = 1`), and at an odd
 //! `N = 251` to cover the odd-width range-check path.
 
-use dusk_bls12_381::BlsScalar;
+use dusk_curves::bls12_381::BlsScalar;
 use rand::SeedableRng;
 use rand::rngs::StdRng;
 

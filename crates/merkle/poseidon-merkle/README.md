@@ -23,6 +23,11 @@ Additionally to the tree itself, this crate defines an opening gadget that can
 be used to create a merkle opening circuit for zero-knowledge applications
 under the `"zk"` feature.
 
+Consumers must select exactly one curve backend: `bls-backend-blst` or
+`bls-backend-dusk`. Archives produced with `rkyv-impl` contain
+backend-specific curve representations and are not portable between backend
+selections.
+
 The type `Item<T>` has the aggregation of the `hash` part with the poseidon hash
 pre-defined and additionally allows for a custom data type with custom
 aggregation.
@@ -31,12 +36,12 @@ aggregation.
 
 There are benchmarks for the poseidon tree calculation available with
 ```shell
-cargo bench
+cargo bench --no-default-features --features bls-backend-blst
 ```
 
 and additional benchmarks for the opening proof generation with PLONK
 ```shell
-cargo bench --features zk
+cargo bench --no-default-features --features bls-backend-blst,zk
 ```
 
 This requires a nightly toolchain.

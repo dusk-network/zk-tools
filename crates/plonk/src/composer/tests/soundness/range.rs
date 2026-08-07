@@ -18,7 +18,7 @@
 //! delegation existed — that the shared core still emits the layout the
 //! deployed keys were generated against.
 
-use dusk_bls12_381::BlsScalar;
+use dusk_curves::bls12_381::BlsScalar;
 use rand::SeedableRng;
 use rand::rngs::StdRng;
 

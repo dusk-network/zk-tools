@@ -91,8 +91,8 @@ paths were removed and `plonkwasm/` was rewritten as `crates/plonkwasm/`.
 ## Monorepo integration changes
 
 After import, repository integration was adjusted so the imported crates use
-one another directly from this repository. Dependency versions, features,
-optionality, and `default-features` settings remain unchanged.
+one another directly from this repository. Integration-specific dependency and
+feature changes are recorded below and in the crate manifests.
 
 The following dependency edges use local paths:
 
@@ -102,14 +102,16 @@ The following dependency edges use local paths:
 - `poseidon-merkle` -> `dusk-plonk`
 - `jubjub-schnorr` -> `dusk-poseidon`
 - `jubjub-schnorr` -> `dusk-plonk`
+- `plonkwasm` -> `dusk-plonk`
 
 The upstream merkle repository's nested workspace manifest is omitted so its
 two crates can be direct members of the root workspace. Consequently,
 `poseidon-merkle`'s upstream `dusk-merkle.workspace = true` declaration is
 expanded to the equivalent version-and-path dependency.
 
-`plonkwasm` is intentionally excluded from the root workspace and continues to
-use its published `dusk-plonk` dependency for now.
+`plonkwasm` is a root workspace member and uses the local `dusk-plonk` crate.
+Its upstream `=0.23.0` version pin is omitted from the path dependency because
+the imported local `dusk-plonk` crate remains at version `0.22.1`.
 
 The local dependency graph exposed API and circuit-soundness differences
 between the imported revisions. The following post-import compatibility

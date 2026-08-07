@@ -9,8 +9,8 @@
 
 use alloc::boxed::Box;
 
-use dusk_bls12_381::BlsScalar;
 use dusk_bytes::Serializable;
+use dusk_curves::bls12_381::BlsScalar;
 use merlin::Transcript;
 
 use crate::commitment_scheme::Commitment;

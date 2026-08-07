@@ -21,7 +21,7 @@
 //! pk_agg = d_1 * pk_1 + d_2 * pk_2 + ... + d_n * pk_n
 //! ```
 //!
-//! reference: https://eprint.iacr.org/2021/1375.pdf - pag. 19
+//! reference: <https://eprint.iacr.org/2021/1375.pdf> - pag. 19
 //!
 //! ## Feature
 //!
@@ -31,7 +31,7 @@
 //!
 //! Generate and verify a multisignature:
 //! ```rust
-//! use dusk_bls12_381::BlsScalar;
+//! use dusk_curves::bls12_381::BlsScalar;
 //! use ff::Field;
 //! use jubjub_schnorr::multisig;
 //! use jubjub_schnorr::{PublicKey, SecretKey};
@@ -96,7 +96,7 @@
 extern crate alloc;
 use alloc::vec;
 
-use dusk_bls12_381::BlsScalar;
+use dusk_curves::bls12_381::BlsScalar;
 use dusk_jubjub::{GENERATOR_EXTENDED, JubJubExtended, JubJubScalar};
 use ff::Field;
 use rand_core::{CryptoRng, RngCore};
