@@ -125,12 +125,10 @@ header paths are also omitted. Cargo does not discover them when invoked from
 the workspace root, so the root Makefile supplies the correct workspace-relative
 paths for the affected documentation builds.
 
-The `jubjub-schnorr` `zk` feature checks and benchmarks, and the
-`dusk-poseidon` ZK integration tests and benchmarks, are temporarily omitted
-from the unified CI because those imported revisions' witness-point APIs are
-not compatible with the imported local `dusk-plonk` revision. Their non-ZK
-feature matrices remain covered; their ZK-enabled libraries remain covered by
-clippy.
+The `jubjub-schnorr` `zk` feature checks and benchmarks are temporarily
+omitted from the unified CI because that imported revision's witness-point API
+is not compatible with the imported local `dusk-plonk` revision. Its non-ZK
+feature matrices remain covered.
 
 The imported `poseidon-merkle` benchmark is also temporarily omitted because
 it still uses superseded Poseidon module paths and Merkle type signatures. Its

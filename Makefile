@@ -13,9 +13,7 @@ test: ## Run the supported test matrix for every workspace crate
 	# fixed. The remaining optional features are covered here.
 	cargo test -p dusk-plonk --release \
 		--features=rkyv-impl,rkyv/size_32,zeroize,legacy-proving
-	# TODO: Re-enable dusk-poseidon's zk tests after their witness-point API is
-	# compatible with the local dusk-plonk version.
-	cargo test -p dusk-poseidon --release --features=encryption
+	cargo test -p dusk-poseidon --release --all-features
 	$(MAKE) -C crates/merkle test
 	# TODO: Re-enable jubjub-schnorr's zk tests once its witness-point API is
 	# compatible with the local dusk-plonk version.
@@ -46,7 +44,7 @@ no-std: ## Check the bare-metal and WASM configurations
 
 build-benches: ## Compile benchmark targets without running them
 	cargo bench -p dusk-plonk --no-run
-	# dusk-poseidon benchmarks require its currently incompatible zk tests API.
+	cargo bench -p dusk-poseidon --all-features --no-run
 	cargo bench -p dusk-merkle --features=rkyv-impl,size_32 --no-run
 	# poseidon-merkle benchmarks still use superseded Poseidon and tree APIs.
 	# jubjub-schnorr benchmarks require its currently incompatible zk feature.
