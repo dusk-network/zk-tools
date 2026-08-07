@@ -8,3 +8,9 @@ members = [
 ]
 exclude = ["crates/plonkwasm"]
 resolver = "3"
+
+# Preserve dusk-plonk's upstream release-profile setting. Member package
+# profiles are ignored when Cargo builds through the root workspace, and the
+# optional CDF debugger needs symbols to resolve and embed caller source files.
+[profile.release.package.dusk-plonk]
+debug = true

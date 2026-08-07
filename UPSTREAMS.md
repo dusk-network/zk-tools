@@ -124,16 +124,3 @@ The crate-local Cargo configurations that only supplied relative rustdoc
 header paths are also omitted. Cargo does not discover them when invoked from
 the workspace root, so the root Makefile supplies the correct workspace-relative
 paths for the affected documentation builds.
-
-The `jubjub-schnorr` `zk` feature checks and benchmarks are temporarily
-omitted from the unified CI because that imported revision's witness-point API
-is not compatible with the imported local `dusk-plonk` revision. Its non-ZK
-feature matrices remain covered.
-
-The imported `poseidon-merkle` benchmark is also temporarily omitted because
-it still uses superseded Poseidon module paths and Merkle type signatures. Its
-library and test suite remain covered by the unified CI.
-
-The `dusk-plonk` `debug` feature is also omitted from the unified test matrix
-because its imported CDF test does not preserve its temporary output directory.
-Default and other optional-feature tests remain covered.
