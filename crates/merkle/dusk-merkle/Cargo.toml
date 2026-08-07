@@ -1,0 +1,38 @@
+[package]
+name = "dusk-merkle"
+description = "Crate implementing Dusk Network's Merkle tree"
+version = "0.6.0-rc.0"
+
+categories = ["data-structures", "no-std"]
+keywords = ["tree", "merkle", "hash", "data", "structure"]
+repository = "https://github.com/dusk-network/merkle"
+authors = [
+    "Eduardo Leegwater Simões <eduardo@dusk.network>",
+    "Moana Marcello <moana@dusk.network>",
+]
+
+edition = "2024"
+rust-version = "1.85"
+license = "MPL-2.0"
+
+[dependencies]
+dusk-bytes = "0.1"
+rkyv = { version = "0.7", optional = true, default-features = false }
+bytecheck = { version = "0.6", optional = true, default-features = false }
+
+[dev-dependencies]
+blake3 = "1"
+rand = "0.8"
+dusk-bls12_381 = "0.14"
+ff = { version = "0.13", default-features = false }
+criterion = "0.3"
+
+[features]
+size_16 = ["rkyv/size_16"]
+size_32 = ["rkyv/size_32"]
+size_64 = ["rkyv/size_64"]
+rkyv-impl = ["rkyv/validation", "rkyv/alloc", "rkyv", "bytecheck"]
+
+[[bench]]
+name = "blake3"
+harness = false
