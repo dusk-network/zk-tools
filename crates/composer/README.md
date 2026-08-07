@@ -1,4 +1,7 @@
-# dusk-zk-composer
+# ZK Composer
+
+[![Build Status](https://github.com/dusk-network/zk-tools/actions/workflows/ci.yml/badge.svg)](https://github.com/dusk-network/zk-tools/actions/workflows/ci.yml)
+[![Repository](https://img.shields.io/badge/github-zk--tools-blueviolet?logo=github)](https://github.com/dusk-network/zk-tools)
 
 `dusk-zk-composer` provides the shared circuit-construction language used by
 Dusk zero-knowledge proving systems. It does not depend on proving-system
@@ -51,3 +54,9 @@ backend through `bls-backend-dusk` or `bls-backend-blst`.
   supported production API.
 - `bls-backend-dusk` and `bls-backend-blst` select the BLS12-381 backend;
   consumers must enable exactly one.
+
+## Licensing
+
+This code is licensed under the Mozilla Public License Version 2.0 (MPL-2.0).
+Please see the [license](https://github.com/dusk-network/zk-tools/blob/main/crates/composer/LICENSE)
+for more information.
