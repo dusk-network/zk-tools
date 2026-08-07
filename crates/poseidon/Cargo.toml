@@ -5,7 +5,7 @@ description = "Implementation of Poseidon hash algorithm over the Bls12-381 Scal
 categories = ["algorithms", "cryptography", "no-std", "wasm"]
 keywords = ["cryptography", "zero-knowledge", "crypto"]
 
-repository = "https://github.com/dusk-network/poseidon252"
+repository = "https://github.com/dusk-network/zk-tools"
 edition = "2024"
 rust-version = "1.85"
 license = "MPL-2.0"
