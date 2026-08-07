@@ -1,0 +1,28 @@
+on: [pull_request]
+
+name: Continuous integration
+
+jobs:
+  code-quality:
+    name: Code quality
+    uses: dusk-network/.github/.github/workflows/run-make.yml@main
+    with:
+      make_target: cq
+
+  test:
+    name: Run tests
+    uses: dusk-network/.github/.github/workflows/run-make.yml@main
+    with:
+      make_target: test
+
+  build-benches:
+    name: Build benchmarks
+    uses: dusk-network/.github/.github/workflows/run-make.yml@main
+    with:
+      make_target: build-benches
+
+  no-std:
+    name: Run no-std checks
+    uses: dusk-network/.github/.github/workflows/run-make.yml@main
+    with:
+      make_target: no-std
