@@ -7,6 +7,7 @@
 // to be able to use this module, the "poseidon" feature needs to be in scope
 
 use criterion::{Criterion, criterion_group, criterion_main};
+use dusk_groth16::Compiler as GrothCompiler;
 use dusk_plonk::prelude::*;
 use dusk_poseidon::{Domain, Hash};
 use poseidon_merkle::zk::opening_gadget;
@@ -77,10 +78,14 @@ impl Circuit for OpeningCircuit {
 fn bench_zk(c: &mut Criterion) {
     // create the prover and verifier circuit descriptions
     let label = b"merkle opening";
-    let rng = &mut StdRng::seed_from_u64(0xdea1);
-    let pp = PublicParameters::setup(1 << CAPACITY, rng).unwrap();
-    let (prover, verifier) = Compiler::compile::<OpeningCircuit>(&pp, label)
-        .expect("Circuit should compile successfully");
+    let setup_rng = &mut StdRng::seed_from_u64(0xdea1);
+    let pp = PublicParameters::setup(1 << CAPACITY, setup_rng).unwrap();
+    let (plonk_prover, plonk_verifier) =
+        Compiler::compile::<OpeningCircuit>(&pp, label)
+            .expect("Circuit should compile successfully");
+    let (groth_prover, groth_verifier) =
+        GrothCompiler::trusted_setup::<OpeningCircuit, _>(setup_rng)
+            .expect("Groth16 setup should succeed");
 
     // create a new tree and insert 100 leaves at random positions
     let tree = &mut PoseidonTree::new();
@@ -103,25 +108,46 @@ fn bench_zk(c: &mut Criterion) {
     tree.insert(pos, leaf);
 
     // create a new opening circuit for the last leaf we inserted
-    let opening = tree.opening(pos as u64).unwrap();
+    let opening = tree.opening(pos).unwrap();
     // sanity check
-    assert!(opening.verify(leaf.clone()));
+    assert!(opening.verify(leaf));
     let circuit = OpeningCircuit::new(opening, leaf);
     let public_inputs = [opening.root().hash];
 
-    let mut proof = Proof::default();
-    c.bench_function("opening proof generation", |b| {
+    let (mut plonk_proof, _) = plonk_prover
+        .prove(rng, &circuit)
+        .expect("PLONK proof generation should succeed");
+    let (mut groth_proof, groth_public_inputs) = groth_prover
+        .prove(rng, &circuit)
+        .expect("Groth16 proof generation should succeed");
+    assert_eq!(groth_public_inputs, public_inputs);
+
+    c.bench_function("opening PLONK proof generation", |b| {
         b.iter(|| {
-            (proof, _) = prover
+            (plonk_proof, _) = plonk_prover
                 .prove(rng, &circuit)
-                .expect("Proof generation should succeed");
+                .expect("PLONK proof generation should succeed");
         })
     });
-    c.bench_function("opening proof verification", |b| {
+    c.bench_function("opening PLONK proof verification", |b| {
         b.iter(|| {
-            verifier
-                .verify(&proof, &public_inputs)
-                .expect("Proof verification should succeed");
+            plonk_verifier
+                .verify(&plonk_proof, &public_inputs)
+                .expect("PLONK proof verification should succeed");
+        })
+    });
+    c.bench_function("opening Groth16 proof generation", |b| {
+        b.iter(|| {
+            (groth_proof, _) = groth_prover
+                .prove(rng, &circuit)
+                .expect("Groth16 proof generation should succeed");
+        })
+    });
+    c.bench_function("opening Groth16 proof verification", |b| {
+        b.iter(|| {
+            groth_verifier
+                .verify(&groth_proof, &public_inputs)
+                .expect("Groth16 proof verification should succeed");
         })
     });
 }

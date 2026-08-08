@@ -6,6 +6,7 @@
 
 use criterion::{Criterion, black_box, criterion_group, criterion_main};
 use dusk_curves::bls12_381::BlsScalar;
+use dusk_groth16::Compiler as GrothCompiler;
 use dusk_jubjub::{GENERATOR_EXTENDED, JubJubAffine, JubJubScalar};
 use dusk_plonk::prelude::*;
 use dusk_poseidon::{decrypt, decrypt_gadget, encrypt};
@@ -39,10 +40,10 @@ impl DecryptionCircuit {
             .iter_mut()
             .for_each(|s| *s = BlsScalar::random(&mut *rng));
         let shared_secret =
-            GENERATOR_EXTENDED * &JubJubScalar::random(&mut *rng);
+            GENERATOR_EXTENDED * JubJubScalar::random(&mut *rng);
         let shared_secret = shared_secret.into();
         let nonce = BlsScalar::random(&mut *rng);
-        let cipher = encrypt(&message, &shared_secret, &nonce)
+        let cipher = encrypt(message, &shared_secret, &nonce)
             .expect("encryption should not fail");
 
         Self {
@@ -94,13 +95,22 @@ impl Circuit for DecryptionCircuit {
 fn bench_decryption(c: &mut Criterion) {
     let mut rng = StdRng::seed_from_u64(0x42424242);
 
-    let (prover, verifier) =
+    let (plonk_prover, plonk_verifier) =
         Compiler::compile::<DecryptionCircuit>(&PUB_PARAMS, LABEL)
             .expect("compilation should pass");
+    let (groth_prover, groth_verifier) =
+        GrothCompiler::trusted_setup::<DecryptionCircuit, _>(&mut rng)
+            .expect("Groth16 setup should succeed");
 
     let circuit: DecryptionCircuit = DecryptionCircuit::random(&mut rng);
     let public_inputs = Vec::new();
-    let mut proof = Proof::default();
+    let (mut plonk_proof, _) = plonk_prover
+        .prove(&mut rng, &circuit)
+        .expect("PLONK proof generation should succeed");
+    let (mut groth_proof, groth_public_inputs) = groth_prover
+        .prove(&mut rng, &circuit)
+        .expect("Groth16 proof generation should succeed");
+    assert_eq!(groth_public_inputs, public_inputs);
 
     // Benchmark native cipher decryption
     c.bench_function("decrypt 2 BlsScalar", |b| {
@@ -113,21 +123,39 @@ fn bench_decryption(c: &mut Criterion) {
         })
     });
 
-    // Benchmark proof creation
-    c.bench_function("decrypt 2 BlsScalar proof generation", |b| {
+    // Benchmark PLONK proof creation
+    c.bench_function("decrypt 2 BlsScalar PLONK proof generation", |b| {
         b.iter(|| {
-            (proof, _) = prover
+            (plonk_proof, _) = plonk_prover
                 .prove(&mut rng, black_box(&circuit))
-                .expect("Proof generation should succeed");
+                .expect("PLONK proof generation should succeed");
         })
     });
 
-    // Benchmark proof verification
-    c.bench_function("decrypt 2 BlsScalar proof verification", |b| {
+    // Benchmark PLONK proof verification
+    c.bench_function("decrypt 2 BlsScalar PLONK proof verification", |b| {
         b.iter(|| {
-            verifier
-                .verify(black_box(&proof), &public_inputs)
-                .expect("Proof verification should succeed");
+            plonk_verifier
+                .verify(black_box(&plonk_proof), &public_inputs)
+                .expect("PLONK proof verification should succeed");
+        })
+    });
+
+    // Benchmark Groth16 proof creation
+    c.bench_function("decrypt 2 BlsScalar Groth16 proof generation", |b| {
+        b.iter(|| {
+            (groth_proof, _) = groth_prover
+                .prove(&mut rng, black_box(&circuit))
+                .expect("Groth16 proof generation should succeed");
+        })
+    });
+
+    // Benchmark Groth16 proof verification
+    c.bench_function("decrypt 2 BlsScalar Groth16 proof verification", |b| {
+        b.iter(|| {
+            groth_verifier
+                .verify(black_box(&groth_proof), &public_inputs)
+                .expect("Groth16 proof verification should succeed");
         })
     });
 }

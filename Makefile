@@ -12,7 +12,9 @@ test: ## Run the supported test matrix for every workspace crate
 	# Keep repository tests on BLST while preserving both public backend features.
 	cargo test -p dusk-zk-composer --release \
 		--no-default-features \
-		--features=bls-backend-blst,std,plonkish,debug,rkyv-impl,zeroize
+		--features=bls-backend-blst,std,plonkish,r1cs,debug,rkyv-impl,zeroize
+	cargo test -p dusk-groth16 --release --no-default-features \
+		--features=bls-backend-blst,std,zeroize
 	cargo test -p dusk-plonk --release \
 		--no-default-features \
 		--features=bls-backend-blst,std,debug,rkyv-impl,zeroize,legacy-proving
@@ -29,8 +31,10 @@ fmt: ## Format all workspace crates; use CHECK=1 to check only
 
 clippy: ## Run the supported clippy matrix for every workspace crate
 	cargo clippy -p dusk-zk-composer --no-default-features \
-		--features=bls-backend-blst,std,plonkish,debug,rkyv-impl,zeroize \
+		--features=bls-backend-blst,std,plonkish,r1cs,debug,rkyv-impl,zeroize \
 		--no-deps -- -D warnings
+	cargo clippy -p dusk-groth16 --no-default-features \
+		--features=bls-backend-blst,std,zeroize --no-deps -- -D warnings
 	cargo clippy -p dusk-plonk --no-default-features \
 		--features=bls-backend-blst,std,rkyv-impl,zeroize,legacy-proving \
 		--no-deps -- -D warnings
@@ -48,12 +52,15 @@ clippy: ## Run the supported clippy matrix for every workspace crate
 
 no-std: ## Check bare-metal and WASM with the portable Dusk backend
 	$(MAKE) -C crates/composer no-std
+	$(MAKE) -C crates/groth16 no-std
 	$(MAKE) -C crates/plonk no-std
 	$(MAKE) -C crates/poseidon no-std
 	$(MAKE) -C crates/merkle no-std
 	$(MAKE) -C crates/jubjub-schnorr no-std
 
 build-benches: ## Compile benchmark targets without running them
+	cargo bench -p dusk-groth16 --no-default-features \
+		--features=bls-backend-blst,std --no-run
 	cargo bench -p dusk-plonk --no-default-features \
 		--features=bls-backend-blst,std --no-run
 	cargo bench -p dusk-poseidon --no-default-features \
@@ -68,7 +75,9 @@ build-benches: ## Compile benchmark targets without running them
 
 doc: ## Build documentation for every workspace crate
 	RUSTDOCFLAGS="-D warnings" cargo doc -p dusk-zk-composer --no-deps --no-default-features \
-		--features=bls-backend-blst,std,plonkish
+		--features=bls-backend-blst,std,plonkish,r1cs
+	RUSTDOCFLAGS="-D warnings" cargo doc -p dusk-groth16 --no-deps --no-default-features \
+		--features=bls-backend-blst,std
 	cargo rustdoc -p dusk-plonk --lib --no-default-features \
 		--features=bls-backend-blst,std -- \
 		--html-in-header crates/plonk/katex-header.html -D warnings
@@ -83,7 +92,9 @@ doc: ## Build documentation for every workspace crate
 	cargo doc -p plonkwasm --no-deps --no-default-features \
 		--features=bls-backend-blst
 
-examples: ## Build and run the PLONK example
+examples: ## Build and run the proof-system examples
+	cargo run --release -p dusk-groth16 --example circuit \
+		--no-default-features --features=bls-backend-blst,std
 	cargo run --release -p dusk-plonk --example circuit \
 		--no-default-features --features=bls-backend-blst,std
 

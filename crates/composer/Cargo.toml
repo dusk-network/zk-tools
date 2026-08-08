@@ -35,11 +35,13 @@ std = [
 ]
 alloc = ["msgpacker", "miniz_oxide", "sha2"]
 plonkish = ["alloc"]
+r1cs = ["alloc"]
 debug = ["std", "plonkish", "dusk-cdf", "backtrace"]
 parallel = ["dusk-curves/parallel"]
 rkyv-impl = ["dusk-curves/rkyv-impl", "dusk-jubjub/rkyv-impl"]
 test-api = ["plonkish"]
+zeroize = ["dep:zeroize", "dusk-curves/zeroize"]
 
 [package.metadata.docs.rs]
 no-default-features = true
-features = ["bls-backend-blst", "std", "plonkish"]
+features = ["bls-backend-blst", "std", "plonkish", "r1cs"]

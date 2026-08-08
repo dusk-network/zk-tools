@@ -4,6 +4,9 @@
 //
 // Copyright (c) DUSK NETWORK. All rights reserved.
 
+mod common;
+
+use common::DualProvers;
 use dusk_jubjub::GENERATOR_EXTENDED;
 use dusk_plonk::prelude::*;
 use ff::Field;
@@ -87,30 +90,20 @@ impl Circuit for SignatureCircuit {
 fn verify_signature() {
     let mut rng = StdRng::seed_from_u64(0xfeeb);
 
-    // Create prover and verifier circuit description
-    let (prover, verifier) = Compiler::compile::<SignatureCircuit>(&PP, LABEL)
-        .expect("Circuit should compile successfully");
+    let systems =
+        DualProvers::compile::<SignatureCircuit>(&mut rng, &PP, LABEL);
 
     //
     // Check valid circuit verifies
     let circuit = SignatureCircuit::valid_random(&mut rng);
 
-    let (proof, _) = prover
-        .prove(&mut rng, &circuit)
-        .expect("Proving the circuit should be successful");
-
-    let pub_inputs = vec![];
-    verifier
-        .verify(&proof, &pub_inputs)
-        .expect("Verification should be successful");
+    systems.prove_and_verify(&mut rng, &circuit, &[]);
 
     //
     // Check proof creation of invalid circuit not possible
     let circuit = SignatureCircuit::invalid_random(&mut rng);
 
-    prover
-        .prove(&mut rng, &circuit)
-        .expect_err("Proving invalid circuit shouldn't be possible");
+    systems.assert_proving_fails(&mut rng, &circuit);
 }
 
 #[derive(Debug, Default)]
@@ -152,13 +145,10 @@ impl Circuit for IdentityPublicKeyCircuit {
 #[test]
 fn verify_signature_rejects_identity_public_key() {
     let mut rng = StdRng::seed_from_u64(0x1d);
-    let (prover, _verifier) =
-        Compiler::compile::<IdentityPublicKeyCircuit>(&PP, LABEL)
-            .expect("Circuit should compile successfully");
+    let systems =
+        DualProvers::compile::<IdentityPublicKeyCircuit>(&mut rng, &PP, LABEL);
 
-    prover
-        .prove(&mut rng, &IdentityPublicKeyCircuit::forged())
-        .expect_err("Identity public keys must not satisfy the circuit");
+    systems.assert_proving_fails(&mut rng, &IdentityPublicKeyCircuit::forged());
 }
 
 //
@@ -225,31 +215,20 @@ impl Circuit for SignatureDoubleCircuit {
 fn verify_signature_double() {
     let mut rng = StdRng::seed_from_u64(0xfeeb);
 
-    // Create prover and verifier circuit description
-    let (prover, verifier) =
-        Compiler::compile::<SignatureDoubleCircuit>(&PP, LABEL)
-            .expect("Circuit compilation should succeed");
+    let systems =
+        DualProvers::compile::<SignatureDoubleCircuit>(&mut rng, &PP, LABEL);
 
     //
     // Check valid circuit verifies
     let circuit = SignatureDoubleCircuit::valid_random(&mut rng);
 
-    let (proof, _) = prover
-        .prove(&mut rng, &circuit)
-        .expect("Proving the circuit should succeed");
-
-    let pub_inputs = vec![];
-    verifier
-        .verify(&proof, &pub_inputs)
-        .expect("Verifying the proof should succeed");
+    systems.prove_and_verify(&mut rng, &circuit, &[]);
 
     //
     // Check proof creation of invalid circuit not possible
     let circuit = SignatureDoubleCircuit::invalid_random(&mut rng);
 
-    prover
-        .prove(&mut rng, &circuit)
-        .expect_err("Proving invalid circuit shouldn't be possible");
+    systems.assert_proving_fails(&mut rng, &circuit);
 }
 
 //
@@ -318,31 +297,20 @@ impl Circuit for SignatureVarGenCircuit {
 fn verify_signature_var_gen() {
     let mut rng = StdRng::seed_from_u64(0xfeeb);
 
-    // Create prover and verifier circuit description
-    let (prover, verifier) =
-        Compiler::compile::<SignatureVarGenCircuit>(&PP, LABEL)
-            .expect("Circuit should compile successfully");
+    let systems =
+        DualProvers::compile::<SignatureVarGenCircuit>(&mut rng, &PP, LABEL);
 
     //
     // Check valid circuit verifies
     let circuit = SignatureVarGenCircuit::valid_random(&mut rng);
 
-    let (proof, _) = prover
-        .prove(&mut rng, &circuit)
-        .expect("Proving the circuit should be successful");
-
-    let pub_inputs = vec![];
-    verifier
-        .verify(&proof, &pub_inputs)
-        .expect("Verification should be successful");
+    systems.prove_and_verify(&mut rng, &circuit, &[]);
 
     //
     // Check proof creation of invalid circuit not possible
     let circuit = SignatureVarGenCircuit::invalid_random(&mut rng);
 
-    prover
-        .prove(&mut rng, &circuit)
-        .expect_err("Proving invalid circuit shouldn't be possible");
+    systems.assert_proving_fails(&mut rng, &circuit);
 }
 
 #[derive(Clone, Copy, Debug, Default)]
@@ -410,16 +378,11 @@ impl Circuit for VarGenScalarCircuit {
 #[test]
 fn verify_signature_var_gen_rejects_noncanonical_response() {
     let mut rng = StdRng::seed_from_u64(0xcafe);
-    let (prover, _verifier) =
-        Compiler::compile::<VarGenScalarCircuit>(&PP, LABEL)
-            .expect("Circuit should compile successfully");
+    let systems =
+        DualProvers::compile::<VarGenScalarCircuit>(&mut rng, &PP, LABEL);
     let (canonical, noncanonical) =
         VarGenScalarCircuit::canonical_and_noncanonical(&mut rng);
 
-    prover
-        .prove(&mut rng, &canonical)
-        .expect("A canonical signature response should satisfy the circuit");
-    prover
-        .prove(&mut rng, &noncanonical)
-        .expect_err("A u + r response alias must not satisfy the circuit");
+    systems.prove_and_verify(&mut rng, &canonical, &[]);
+    systems.assert_proving_fails(&mut rng, &noncanonical);
 }

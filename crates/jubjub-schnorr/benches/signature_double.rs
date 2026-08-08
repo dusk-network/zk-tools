@@ -7,6 +7,7 @@
 use std::sync::atomic::{AtomicUsize, Ordering};
 
 use criterion::{Criterion, criterion_group, criterion_main};
+use dusk_groth16::Compiler as GrothCompiler;
 use dusk_plonk::prelude::*;
 use ff::Field;
 use jubjub_schnorr::{PublicKeyDouble, SecretKey, SignatureDouble, gadgets};
@@ -27,7 +28,7 @@ lazy_static::lazy_static! {
 static CONSTRAINTS: AtomicUsize = AtomicUsize::new(0);
 static LABEL: &[u8; 12] = b"dusk-network";
 
-fn bench_prover<C>(rng: &mut StdRng, prover: &Prover, circuit: &C)
+fn bench_plonk_prover<C>(rng: &mut StdRng, prover: &Prover, circuit: &C)
 where
     C: Circuit,
 {
@@ -81,21 +82,37 @@ impl Circuit for SigDoubleCircuit {
 }
 
 fn proof_creation_signature_double(c: &mut Criterion) {
-    let mut rng = &mut StdRng::seed_from_u64(0xbeef);
+    let mut rng = StdRng::seed_from_u64(0xbeef);
 
     // We compile the circuit using the public parameters PP
-    let (prover, _verifier) = Compiler::compile::<SigDoubleCircuit>(&PP, LABEL)
-        .expect("circuit should compile");
+    let (plonk_prover, _verifier) =
+        Compiler::compile::<SigDoubleCircuit>(&PP, LABEL)
+            .expect("circuit should compile");
+    let plonk_constraints = CONSTRAINTS.load(Ordering::Relaxed);
+    let (groth_prover, _verifier) =
+        GrothCompiler::trusted_setup::<SigDoubleCircuit, _>(&mut rng)
+            .expect("Groth16 setup should succeed");
+    let r1cs_constraints = CONSTRAINTS.load(Ordering::Relaxed);
 
     let circuit = SigDoubleCircuit::valid(&mut rng);
 
     // We benchmark the prover
     let log = &format!(
-        "Signature double proof creation ({} constraints)",
-        CONSTRAINTS.load(Ordering::Relaxed)
+        "Signature double PLONK proof creation ({plonk_constraints} constraints)"
     );
     c.bench_function(log, |b| {
-        b.iter(|| bench_prover(&mut rng, &prover, &circuit))
+        b.iter(|| bench_plonk_prover(&mut rng, &plonk_prover, &circuit))
+    });
+
+    let log = &format!(
+        "Signature double Groth16 proof creation ({r1cs_constraints} constraints)"
+    );
+    c.bench_function(log, |b| {
+        b.iter(|| {
+            groth_prover
+                .prove(&mut rng, &circuit)
+                .expect("Groth16 proof creation should succeed");
+        })
     });
 }
 

@@ -1,0 +1,46 @@
+[package]
+name = "dusk-groth16"
+version = "0.1.0"
+categories = ["algorithms", "cryptography", "no-std", "mathematics"]
+edition = "2024"
+rust-version = "1.85"
+keywords = ["cryptography", "groth16", "zk-snarks", "zero-knowledge"]
+license = "MPL-2.0"
+repository = "https://github.com/dusk-network/zk-tools"
+description = "Groth16 proofs for circuits built with dusk-zk-composer"
+
+[dependencies]
+dusk-bytes = { version = "0.1", optional = true }
+dusk-curves = { version = "=0.2.1", default-features = false }
+dusk-zk-composer = { version = "0.1.0", path = "../composer", default-features = false, optional = true, features = ["r1cs"] }
+ff = { version = "0.13", default-features = false }
+rand_core = { version = "0.6", default-features = false }
+zeroize = { version = "1", default-features = false, optional = true, features = ["alloc"] }
+
+[dev-dependencies]
+criterion = "0.5"
+dusk-plonk = { version = "0.22.1", path = "../plonk", default-features = false, features = ["alloc"] }
+rand_chacha = "0.3"
+sha2 = "0.10"
+
+[features]
+default = ["std"]
+bls-backend-dusk = ["dusk-curves/bls-backend-dusk", "dusk-zk-composer?/bls-backend-dusk"]
+bls-backend-blst = ["dusk-curves/bls-backend-blst", "dusk-zk-composer?/bls-backend-blst"]
+std = ["alloc", "rand_core/std", "dusk-zk-composer/std"]
+alloc = ["dep:dusk-zk-composer", "dep:dusk-bytes"]
+parallel = ["dusk-curves/parallel", "dusk-zk-composer?/parallel"]
+zeroize = ["dep:zeroize", "dusk-curves/zeroize", "dusk-zk-composer?/zeroize"]
+
+[package.metadata.docs.rs]
+no-default-features = true
+features = ["bls-backend-blst", "std"]
+
+[[example]]
+name = "circuit"
+required-features = ["std"]
+
+[[bench]]
+name = "groth16"
+harness = false
+required-features = ["std"]

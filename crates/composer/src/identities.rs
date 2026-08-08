@@ -14,12 +14,13 @@ use core::ops::{Add, Mul, Sub};
 use dusk_curves::bls12_381::BlsScalar;
 use dusk_jubjub::EDWARDS_D;
 
-use crate::prelude::Gate;
+use crate::composer::Gate;
 
 /// Number of independently enforced Turbo Plonkish identities.
 pub const IDENTITY_COUNT: usize = 17;
 
 /// Human-readable names, index-aligned with [`evaluate`].
+#[cfg(feature = "plonkish")]
 pub const IDENTITY_NAMES: [&str; IDENTITY_COUNT] = [
     "arithmetic",
     "range delta c/d",

@@ -15,6 +15,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Exercise Schnorr circuit gadget tests with both PLONK and Groth16.
+- Benchmark all Schnorr proof-generation circuit variants with Groth16 in
+  addition to PLONK.
 - Make Schnorr circuit gadgets depend on the proof-system-neutral
   `dusk-zk-composer` crate; PLONK is now needed only by proving tests and benchmarks
   ([#5](https://github.com/dusk-network/zk-tools/issues/5)).

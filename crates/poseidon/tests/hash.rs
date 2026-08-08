@@ -6,7 +6,10 @@
 
 #![cfg(feature = "zk")]
 
-use dusk_plonk::prelude::{Error as PlonkError, *};
+mod common;
+
+use common::DualProvers;
+use dusk_plonk::prelude::*;
 use dusk_poseidon::{Domain, Hash, HashGadget};
 use ff::Field;
 use once_cell::sync::Lazy;
@@ -24,17 +27,13 @@ static PUB_PARAMS: Lazy<PublicParameters> = Lazy::new(|| {
 fn compile_and_verify<C>(
     rng: &mut StdRng,
     circuit: &C,
-    pi: &Vec<BlsScalar>,
-) -> Result<(), PlonkError>
-where
+    public_inputs: &[BlsScalar],
+) where
     C: Circuit,
 {
     let label = b"hash-gadget-tester";
-    let (prover, verifier) = Compiler::compile::<C>(&PUB_PARAMS, label)?;
-
-    let (proof, _public_inputs) = prover.prove(rng, circuit)?;
-
-    verifier.verify(&proof, pi)
+    let systems = DualProvers::compile::<C>(rng, &PUB_PARAMS, label);
+    systems.prove_and_verify(rng, circuit, public_inputs);
 }
 
 // ----------------
@@ -102,20 +101,20 @@ impl<const L: usize> Circuit for TestCircuit<L> {
 }
 
 #[test]
-fn test_gadget() -> Result<(), Error> {
+fn test_gadget() {
     let mut rng = StdRng::seed_from_u64(0xbeef);
 
     // test for input of 3 scalar
     let circuit = TestCircuit::<3>::random(&mut rng);
-    compile_and_verify(&mut rng, &circuit, &circuit.public_inputs())?;
+    compile_and_verify(&mut rng, &circuit, &circuit.public_inputs());
 
     // test for input of 5 scalar
     let circuit = TestCircuit::<5>::random(&mut rng);
-    compile_and_verify(&mut rng, &circuit, &circuit.public_inputs())?;
+    compile_and_verify(&mut rng, &circuit, &circuit.public_inputs());
 
     // test for input of 15 scalar
     let circuit = TestCircuit::<15>::random(&mut rng);
-    compile_and_verify(&mut rng, &circuit, &circuit.public_inputs())
+    compile_and_verify(&mut rng, &circuit, &circuit.public_inputs());
 }
 
 // -------------------
@@ -192,20 +191,20 @@ impl<const L: usize> Circuit for TestTruncatedCircuit<L> {
 }
 
 #[test]
-fn test_truncated_gadget() -> Result<(), Error> {
+fn test_truncated_gadget() {
     let mut rng = StdRng::seed_from_u64(0xbeef);
 
     // test for input of 3 scalar
     let circuit = TestTruncatedCircuit::<3>::random(&mut rng);
-    compile_and_verify(&mut rng, &circuit, &circuit.public_inputs())?;
+    compile_and_verify(&mut rng, &circuit, &circuit.public_inputs());
 
     // test for input of 5 scalar
     let circuit = TestTruncatedCircuit::<5>::random(&mut rng);
-    compile_and_verify(&mut rng, &circuit, &circuit.public_inputs())?;
+    compile_and_verify(&mut rng, &circuit, &circuit.public_inputs());
 
     // test for input of 15 scalar
     let circuit = TestTruncatedCircuit::<15>::random(&mut rng);
-    compile_and_verify(&mut rng, &circuit, &circuit.public_inputs())
+    compile_and_verify(&mut rng, &circuit, &circuit.public_inputs());
 }
 
 // --------------------
@@ -284,18 +283,18 @@ impl<const I: usize, const O: usize> Circuit for MultipleOutputCircuit<I, O> {
 }
 
 #[test]
-fn test_multiple_output() -> Result<(), Error> {
+fn test_multiple_output() {
     let mut rng = StdRng::seed_from_u64(0xbeef);
 
     // test for input of 3 scalar
     let circuit = MultipleOutputCircuit::<3, 3>::random(&mut rng);
-    compile_and_verify(&mut rng, &circuit, &circuit.public_inputs())?;
+    compile_and_verify(&mut rng, &circuit, &circuit.public_inputs());
 
     // test for input of 5 scalar
     let circuit = MultipleOutputCircuit::<5, 2>::random(&mut rng);
-    compile_and_verify(&mut rng, &circuit, &circuit.public_inputs())?;
+    compile_and_verify(&mut rng, &circuit, &circuit.public_inputs());
 
     // test for input of 15 scalar
     let circuit = MultipleOutputCircuit::<4, 7>::random(&mut rng);
-    compile_and_verify(&mut rng, &circuit, &circuit.public_inputs())
+    compile_and_verify(&mut rng, &circuit, &circuit.public_inputs());
 }

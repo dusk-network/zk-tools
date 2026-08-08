@@ -123,21 +123,25 @@ impl Gate {
     }
 
     /// Left-wire witness.
+    #[cfg(feature = "plonkish")]
     pub const fn a(&self) -> Witness {
         self.a
     }
 
     /// Right-wire witness.
+    #[cfg(feature = "plonkish")]
     pub const fn b(&self) -> Witness {
         self.b
     }
 
     /// Output-wire witness.
+    #[cfg(feature = "plonkish")]
     pub const fn c(&self) -> Witness {
         self.c
     }
 
     /// Fourth-wire witness.
+    #[cfg(feature = "plonkish")]
     pub const fn d(&self) -> Witness {
         self.d
     }

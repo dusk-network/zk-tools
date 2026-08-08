@@ -4,6 +4,9 @@
 //
 // Copyright (c) DUSK NETWORK. All rights reserved.
 
+mod common;
+
+use common::prove_and_verify;
 use dusk_plonk::prelude::*;
 use dusk_poseidon::{Domain, Hash};
 use ff::Field;
@@ -77,9 +80,6 @@ fn opening() {
     let mut rng = StdRng::seed_from_u64(0xdea1);
     let pp = PublicParameters::setup(1 << CAPACITY, &mut rng).unwrap();
 
-    let (prover, verifier) = Compiler::compile::<OpeningCircuit>(&pp, label)
-        .expect("Circuit should compile successfully");
-
     let mut tree = Tree::new();
     let mut leaf = PoseidonItem::new(BlsScalar::zero(), ());
     let mut position = 0;
@@ -88,18 +88,13 @@ fn opening() {
             Hash::digest(Domain::Other, &[BlsScalar::random(&mut rng)])[0];
         position = rng.next_u64() % tree.capacity();
         leaf = PoseidonItem::new(hash, ());
-        tree.insert(position as u64, leaf);
+        tree.insert(position, leaf);
     }
-    let opening = tree.opening(position as u64).unwrap();
-    assert!(opening.verify(leaf.clone()));
+    let opening = tree.opening(position).unwrap();
+    assert!(opening.verify(leaf));
 
     let circuit = OpeningCircuit::new(opening, leaf);
 
-    let (proof, public_inputs) = prover
-        .prove(&mut rng, &circuit)
-        .expect("Proof generation should succeed");
-
-    verifier
-        .verify(&proof, &public_inputs)
-        .expect("Proof verification should succeed");
+    let public_inputs = [opening.root().hash];
+    prove_and_verify(&mut rng, &pp, label, &circuit, &public_inputs);
 }

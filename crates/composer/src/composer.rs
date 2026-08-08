@@ -24,10 +24,12 @@ mod circuit;
 mod compress;
 mod constraint_system;
 mod fixed_base;
-#[cfg(feature = "plonkish")]
+#[cfg(any(feature = "plonkish", feature = "r1cs"))]
 mod gate;
 mod logic;
 mod point;
+#[cfg(feature = "r1cs")]
+mod r1cs;
 mod range;
 mod select;
 mod truncate;
@@ -393,8 +395,13 @@ pub use constraint_system::{
     Constraint, TorsionFreeWitnessPoint, Witness, WitnessPoint,
 };
 pub(crate) use constraint_system::{Selector, WiredWitness};
-#[cfg(feature = "plonkish")]
+#[cfg(any(feature = "plonkish", feature = "r1cs"))]
 pub use gate::Gate;
+#[cfg(feature = "r1cs")]
+pub use r1cs::{
+    LinearCombination, R1cs, R1csAssignment, R1csCircuit, R1csConstraint,
+    R1csShape, Variable,
+};
 
 /// PLONKish circuit shape.
 ///

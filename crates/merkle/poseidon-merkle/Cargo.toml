@@ -28,6 +28,7 @@ bytecheck = { version = "0.6", optional = true, default-features = false }
 rand = "0.8"
 criterion = "0.3"
 ff = { version = "0.13", default-features = false }
+dusk-groth16 = { version = "0.1.0", path = "../../groth16", default-features = false, features = ["alloc"] }
 dusk-plonk = { version = "0.22.1", path = "../../plonk", default-features = false, features = ["alloc"] }
 
 [features]
