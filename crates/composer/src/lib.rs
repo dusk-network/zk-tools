@@ -26,6 +26,8 @@ cfg_if::cfg_if! {
         /// Canonical Turbo Plonkish gate identities.
         #[cfg(feature = "plonkish")]
         pub mod identities;
+        #[cfg(all(feature = "r1cs", not(feature = "plonkish")))]
+        mod identities;
     }
 }
 
@@ -43,6 +45,11 @@ pub use composer::{
 };
 #[cfg(all(feature = "alloc", feature = "plonkish"))]
 pub use composer::{CircuitShape, Gate, Plonkish};
+#[cfg(all(feature = "alloc", feature = "r1cs"))]
+pub use composer::{
+    LinearCombination, R1cs, R1csAssignment, R1csCircuit, R1csConstraint,
+    R1csShape, Variable,
+};
 pub use error::{Error, Error as CircuitError};
 
 /// Common circuit-construction imports.

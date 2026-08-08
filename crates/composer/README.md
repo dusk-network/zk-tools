@@ -30,15 +30,21 @@ impl Circuit for ProductCircuit {
         Ok(())
     }
 }
-
-let mut composer = Composer::<Plonkish>::initialized();
-ProductCircuit::default().circuit(&mut composer)?;
-# Ok::<(), CircuitError>(())
 ```
 
-The `plonkish` feature provides the current width-four PLONKish backend.
-Additional backends can implement the same `ComposerBackend` contract without
-introducing a dependency from the composer to a proving-system crate.
+The `plonkish` feature provides the current width-four PLONKish backend. The
+`r1cs` feature provides a rank-1 backend that lowers the same arithmetic, range,
+logic, and elliptic-curve identities into sparse rank-1 equations. Additional
+backends can implement the same `ComposerBackend` contract without introducing
+a dependency from the composer to a proving-system crate.
+
+Finalized R1CS assignments use the order `(1, public inputs, Composer
+witnesses, lowering auxiliaries)`. Sparse linear-combination terms are
+normalized by variable index, and the value-independent shape digest commits
+to variable counts, public-input counts, constraint order, variable indexes,
+and coefficients. Shifted custom-gate identities retain the PLONKish padded
+domain rule: the final row wraps only when the emitted row count is already a
+power of two; otherwise it reads zero-valued padding.
 
 The crate is `no_std` with `alloc`. Consumers must select exactly one BLS12-381
 backend through `bls-backend-dusk` or `bls-backend-blst`.
@@ -48,10 +54,16 @@ backend through `bls-backend-dusk` or `bls-backend-blst`.
 - `alloc` enables circuit construction.
 - `plonkish` enables `Plonkish`, PLONKish gates, circuit shapes, and compressed
   circuit descriptions. It implies `alloc` and is enabled by default.
+- `r1cs` enables the `R1cs` backend, finalized rank-1 shapes, and assignments.
+  It implies `alloc`.
 - `std` enables standard-library support and implies `alloc`.
 - `debug` enables CDF circuit debugging and implies `std` and `plonkish`.
 - `test-api` exposes unstable raw hooks for adversarial testing. It is not a
   supported production API.
+- `zeroize` enables best-effort clearing of finalized R1CS assignments and
+  forwards scalar zeroization support to `dusk-curves`.
+- `parallel` forwards Rayon support to the portable Dusk backend and cannot be
+  combined with `bls-backend-blst`.
 - `bls-backend-dusk` and `bls-backend-blst` select the BLS12-381 backend;
   consumers must enable exactly one.
 

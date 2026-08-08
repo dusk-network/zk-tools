@@ -15,3 +15,8 @@ pub use crate::{
 #[cfg(all(feature = "alloc", feature = "plonkish"))]
 pub use crate::{CircuitShape, Gate, Plonkish};
 pub use crate::{Error, Error as CircuitError};
+#[cfg(all(feature = "alloc", feature = "r1cs"))]
+pub use crate::{
+    LinearCombination, R1cs, R1csAssignment, R1csCircuit, R1csConstraint,
+    R1csShape, Variable,
+};

@@ -6,14 +6,14 @@ help: ## Display this help screen
 
 test: ## Run release tests with the BLST backend
 	cargo test -p dusk-zk-composer --release --no-default-features \
-		--features=bls-backend-blst,std,plonkish,debug,rkyv-impl,zeroize
+		--features=bls-backend-blst,std,plonkish,r1cs,debug,rkyv-impl,zeroize
 
 fmt: ## Format workspace code; use CHECK=1 to check only
 	cargo +nightly fmt --all $(if $(CHECK),-- --check,)
 
 clippy: ## Run the supported lint matrix
 	cargo clippy -p dusk-zk-composer --no-default-features \
-		--features=bls-backend-blst,std,plonkish,debug,rkyv-impl,zeroize \
+		--features=bls-backend-blst,std,plonkish,r1cs,debug,rkyv-impl,zeroize \
 		--no-deps -- -D warnings
 
 no-std: ## Verify bare-metal builds with the portable Dusk backend
@@ -21,12 +21,13 @@ no-std: ## Verify bare-metal builds with the portable Dusk backend
 	cargo build --release -p dusk-zk-composer --target thumbv6m-none-eabi \
 		--no-default-features --features=bls-backend-dusk,plonkish,zeroize
 	cargo build --release -p dusk-zk-composer --target thumbv6m-none-eabi \
+		--no-default-features --features=bls-backend-dusk,r1cs,zeroize
+	cargo build --release -p dusk-zk-composer --target thumbv6m-none-eabi \
 		--no-default-features --features=bls-backend-dusk
 
 doc: ## Generate warning-free public documentation
 	RUSTDOCFLAGS="-D warnings" cargo doc -p dusk-zk-composer --no-deps \
-		--no-default-features --features=bls-backend-blst,std,plonkish
+		--no-default-features --features=bls-backend-blst,std,plonkish,r1cs
 
 clean: ## Remove workspace build artifacts
 	cargo clean
-
