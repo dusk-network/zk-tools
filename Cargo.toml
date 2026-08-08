@@ -1,6 +1,7 @@
 [workspace]
 members = [
     "crates/composer",
+    "crates/groth16",
     "crates/plonk",
     "crates/poseidon",
     "crates/merkle/dusk-merkle",
