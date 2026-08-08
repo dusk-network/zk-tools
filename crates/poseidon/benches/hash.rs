@@ -5,6 +5,7 @@
 // Copyright (c) DUSK NETWORK. All rights reserved.
 
 use criterion::{Criterion, black_box, criterion_group, criterion_main};
+use dusk_groth16::Compiler as GrothCompiler;
 use dusk_plonk::prelude::*;
 use dusk_poseidon::{Domain, HADES_WIDTH, Hash, HashGadget};
 use ff::Field;
@@ -55,9 +56,12 @@ fn bench_sponge(c: &mut Criterion) {
     let label = b"sponge benchmark";
     let mut rng = StdRng::seed_from_u64(0xc10d);
     let pp = PublicParameters::setup(1 << CAPACITY, &mut rng).unwrap();
-    let (prover, verifier) = Compiler::compile::<SpongeCircuit>(&pp, label)
-        .expect("Circuit should compile successfully");
-    let mut proof = Proof::default();
+    let (plonk_prover, plonk_verifier) =
+        Compiler::compile::<SpongeCircuit>(&pp, label)
+            .expect("Circuit should compile successfully");
+    let (groth_prover, groth_verifier) =
+        GrothCompiler::trusted_setup::<SpongeCircuit, _>(&mut rng)
+            .expect("Groth16 setup should succeed");
     let message = [
         BlsScalar::random(&mut rng),
         BlsScalar::random(&mut rng),
@@ -66,6 +70,13 @@ fn bench_sponge(c: &mut Criterion) {
     ];
     let public_inputs = Hash::digest(Domain::Merkle4, &message);
     let circuit = SpongeCircuit::new(message, public_inputs[0]);
+    let (mut plonk_proof, _) = plonk_prover
+        .prove(&mut rng, &circuit)
+        .expect("PLONK proof generation should succeed");
+    let (mut groth_proof, groth_public_inputs) = groth_prover
+        .prove(&mut rng, &circuit)
+        .expect("Groth16 proof generation should succeed");
+    assert_eq!(groth_public_inputs, public_inputs);
 
     // Benchmark sponge native
     c.bench_function("hash 4 BlsScalar", |b| {
@@ -74,21 +85,39 @@ fn bench_sponge(c: &mut Criterion) {
         })
     });
 
-    // Benchmark proof creation
-    c.bench_function("hash 4 BlsScalar proof generation", |b| {
+    // Benchmark PLONK proof creation
+    c.bench_function("hash 4 BlsScalar PLONK proof generation", |b| {
         b.iter(|| {
-            (proof, _) = prover
+            (plonk_proof, _) = plonk_prover
                 .prove(&mut rng, black_box(&circuit))
-                .expect("Proof generation should succeed");
+                .expect("PLONK proof generation should succeed");
         })
     });
 
-    // Benchmark proof verification
-    c.bench_function("hash 4 BlsScalar proof verification", |b| {
+    // Benchmark PLONK proof verification
+    c.bench_function("hash 4 BlsScalar PLONK proof verification", |b| {
         b.iter(|| {
-            verifier
-                .verify(black_box(&proof), &public_inputs)
-                .expect("Proof verification should succeed");
+            plonk_verifier
+                .verify(black_box(&plonk_proof), &public_inputs)
+                .expect("PLONK proof verification should succeed");
+        })
+    });
+
+    // Benchmark Groth16 proof creation
+    c.bench_function("hash 4 BlsScalar Groth16 proof generation", |b| {
+        b.iter(|| {
+            (groth_proof, _) = groth_prover
+                .prove(&mut rng, black_box(&circuit))
+                .expect("Groth16 proof generation should succeed");
+        })
+    });
+
+    // Benchmark Groth16 proof verification
+    c.bench_function("hash 4 BlsScalar Groth16 proof verification", |b| {
+        b.iter(|| {
+            groth_verifier
+                .verify(black_box(&groth_proof), &public_inputs)
+                .expect("Groth16 proof verification should succeed");
         })
     });
 }

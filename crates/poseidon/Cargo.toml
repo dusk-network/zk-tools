@@ -22,6 +22,7 @@ rand = { version = "0.8", default-features = false, features = ["getrandom", "st
 ff = { version = "0.13", default-features = false }
 once_cell = "1"
 dusk-bytes = "0.1"
+dusk-groth16 = { version = "0.1.0", path = "../groth16", default-features = false, features = ["alloc", "zeroize"] }
 dusk-plonk = { version = "0.22.1", path = "../plonk", default-features = false, features = ["alloc", "zeroize"] }
 
 [features]

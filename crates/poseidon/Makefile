@@ -25,6 +25,10 @@ doc: ## Generate docs
 	@cargo doc --no-deps -p dusk-poseidon --no-default-features \
 		--features=bls-backend-blst,zk,encryption
 
+build-benches: ## Compile benchmark targets without running them
+	@cargo bench -p dusk-poseidon --no-default-features \
+		--features=bls-backend-blst,zk,encryption --no-run
+
 clean: ## Clean build artifacts
 	@cargo clean
 
@@ -33,4 +37,4 @@ no-std: ## Verify no_std bare-metal build
 	@cargo build --release --no-default-features \
 		--features=bls-backend-dusk --target thumbv6m-none-eabi
 
-.PHONY: help test clippy cq fmt check doc clean no-std
+.PHONY: help test clippy cq fmt check doc build-benches clean no-std
