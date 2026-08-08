@@ -11,6 +11,12 @@
 
 pub use dusk_curves::bls12_381::BlsScalar;
 pub use dusk_jubjub::{JubJubAffine, JubJubExtended, JubJubScalar};
+#[cfg(feature = "alloc")]
+pub use dusk_zk_composer::{
+    Circuit, CircuitShape, Composer, ComposerBackend, Constraint,
+    Error as CircuitError, Gate, Plonkish, TorsionFreeWitnessPoint, Witness,
+    WitnessPoint,
+};
 
 pub use crate::error::Error;
 pub use crate::proof_system::Proof;
@@ -18,8 +24,4 @@ pub use crate::proof_system::Proof;
 pub use crate::{
     commitment_scheme::PublicParameters,
     compiler::{Compiler, PlonkVersion, Prover, Verifier},
-    composer::{
-        Circuit, Composer, Constraint, TorsionFreeWitnessPoint, Witness,
-        WitnessPoint,
-    },
 };

@@ -34,7 +34,10 @@ impl Default for SumCircuit {
 }
 
 impl Circuit for SumCircuit {
-    fn circuit(&self, composer: &mut Composer) -> Result<(), Error> {
+    fn circuit<B: ComposerBackend>(
+        &self,
+        composer: &mut Composer<B>,
+    ) -> Result<(), CircuitError> {
         let a = composer.append_public(self.a);
         let b = composer.append_public(self.b);
         let output =

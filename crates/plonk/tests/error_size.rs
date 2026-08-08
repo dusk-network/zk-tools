@@ -24,12 +24,19 @@ impl TestSize {
 }
 
 impl Circuit for TestSize {
-    fn circuit(&self, composer: &mut Composer) -> Result<(), Error> {
-        let sum = self.witnesses.iter().fold(Composer::ZERO, |acc, scalar| {
-            let w = composer.append_witness(*scalar);
-            let constraint = Constraint::new().left(1).a(acc).right(1).b(w);
-            composer.gate_add(constraint)
-        });
+    fn circuit<B: ComposerBackend>(
+        &self,
+        composer: &mut Composer<B>,
+    ) -> Result<(), CircuitError> {
+        let sum =
+            self.witnesses
+                .iter()
+                .fold(Composer::<B>::ZERO, |acc, scalar| {
+                    let w = composer.append_witness(*scalar);
+                    let constraint =
+                        Constraint::new().left(1).a(acc).right(1).b(w);
+                    composer.gate_add(constraint)
+                });
 
         let expected_sum = composer.append_witness(self.sum);
         composer.assert_equal(sum, expected_sum);
@@ -54,10 +61,10 @@ fn size() {
     let sum = witnesses.iter().sum();
     let circuit = TestSize::new(witnesses, sum);
     let result = prover.prove(rng, &circuit);
-    let empty_circuit_size = Composer::initialized().constraints();
+    let empty_circuit_size = Composer::<Plonkish>::initialized().constraints();
     assert!(result.is_err_and(|e| e
-        == Error::InvalidCircuitSize(
+        == Error::Circuit(CircuitError::InvalidCircuitSize(
             empty_circuit_size + 5,
-            empty_circuit_size + 1
-        )));
+            empty_circuit_size + 1,
+        ))));
 }

@@ -40,7 +40,10 @@ fn component_add_point() {
     }
 
     impl Circuit for TestCircuit {
-        fn circuit(&self, composer: &mut Composer) -> Result<(), Error> {
+        fn circuit<B: ComposerBackend>(
+            &self,
+            composer: &mut Composer<B>,
+        ) -> Result<(), CircuitError> {
             let w_p1 = composer.append_point(self.p1)?;
             let w_p2 = composer.append_point(self.p2)?;
             let w_sum = composer.append_point(self.sum)?;
@@ -141,7 +144,10 @@ fn component_sub_point() {
     }
 
     impl Circuit for TestCircuit {
-        fn circuit(&self, composer: &mut Composer) -> Result<(), Error> {
+        fn circuit<B: ComposerBackend>(
+            &self,
+            composer: &mut Composer<B>,
+        ) -> Result<(), CircuitError> {
             let w_p1 = composer.append_point(self.p1)?;
             let w_p2 = composer.append_point(self.p2)?;
             let w_sub = composer.append_point(self.sub)?;
@@ -233,7 +239,10 @@ fn component_neg_point() {
     }
 
     impl Circuit for TestCircuit {
-        fn circuit(&self, composer: &mut Composer) -> Result<(), Error> {
+        fn circuit<B: ComposerBackend>(
+            &self,
+            composer: &mut Composer<B>,
+        ) -> Result<(), CircuitError> {
             let w_p = composer.append_point(self.p)?;
             let w_neg_p = composer.append_point(self.neg_p)?;
 
@@ -324,7 +333,10 @@ fn component_mul_generator() {
     }
 
     impl Circuit for TestCircuit {
-        fn circuit(&self, composer: &mut Composer) -> Result<(), Error> {
+        fn circuit<B: ComposerBackend>(
+            &self,
+            composer: &mut Composer<B>,
+        ) -> Result<(), CircuitError> {
             let w_scalar = composer.append_witness(self.scalar);
             let w_result = composer.append_point(self.result)?;
 
@@ -448,18 +460,21 @@ fn component_mul_generator() {
 
 #[test]
 fn component_mul_generator_rejects_non_prime_order_generator() {
-    let mut composer = Composer::initialized();
+    let mut composer = Composer::<Plonkish>::initialized();
     let scalar = composer.append_witness(JubJubScalar::one());
 
     let result =
         composer.component_mul_generator(scalar, JubJubExtended::identity());
 
-    assert!(matches!(result, Err(Error::JubJubGeneratorNotPrimeOrder)));
+    assert!(matches!(
+        result,
+        Err(CircuitError::JubJubGeneratorNotPrimeOrder)
+    ));
 }
 
 #[test]
 fn component_mul_generator_rejects_zero_z_generator() {
-    let mut composer = Composer::initialized();
+    let mut composer = Composer::<Plonkish>::initialized();
     let scalar = composer.append_witness(JubJubScalar::one());
     let generator = JubJubExtended::from_raw_unchecked(
         BlsScalar::zero(),
@@ -471,7 +486,10 @@ fn component_mul_generator_rejects_zero_z_generator() {
 
     let result = composer.component_mul_generator(scalar, generator);
 
-    assert!(matches!(result, Err(Error::JubJubGeneratorNotPrimeOrder)));
+    assert!(matches!(
+        result,
+        Err(CircuitError::JubJubGeneratorNotPrimeOrder)
+    ));
 }
 
 /// Torsion points of the embedded curve, raw coordinates from dusk-jubjub's
@@ -532,7 +550,7 @@ fn torsion_points_have_claimed_orders() {
 
 #[test]
 fn component_mul_generator_rejects_off_curve_generator() {
-    let mut composer = Composer::initialized();
+    let mut composer = Composer::<Plonkish>::initialized();
     let scalar = composer.append_witness(JubJubScalar::one());
     // `(0, 0)` does not satisfy the curve equation. As an extended point it
     // carries `Z = 1`, so the guard has to reject it through `is_on_curve`
@@ -548,12 +566,15 @@ fn component_mul_generator_rejects_off_curve_generator() {
 
     let result = composer.component_mul_generator(scalar, generator);
 
-    assert!(matches!(result, Err(Error::JubJubGeneratorNotPrimeOrder)));
+    assert!(matches!(
+        result,
+        Err(CircuitError::JubJubGeneratorNotPrimeOrder)
+    ));
 }
 
 #[test]
 fn component_mul_generator_rejects_inconsistent_extended_coordinates() {
-    let mut composer = Composer::initialized();
+    let mut composer = Composer::<Plonkish>::initialized();
     let scalar = composer.append_witness(JubJubScalar::one());
     // `is_on_curve` on an extended point also ties the two halves of the
     // extended coordinate to the affine ones: `u * v * z == t1 * t2`. Build a
@@ -574,7 +595,10 @@ fn component_mul_generator_rejects_inconsistent_extended_coordinates() {
 
     let result = composer.component_mul_generator(scalar, generator);
 
-    assert!(matches!(result, Err(Error::JubJubGeneratorNotPrimeOrder)));
+    assert!(matches!(
+        result,
+        Err(CircuitError::JubJubGeneratorNotPrimeOrder)
+    ));
 }
 
 #[test]
@@ -590,13 +614,13 @@ fn component_mul_generator_rejects_on_curve_torsion_generator() {
         assert!(!bool::from(generator.is_identity()), "order {order}");
         assert!(bool::from(generator.is_small_order()), "order {order}");
 
-        let mut composer = Composer::initialized();
+        let mut composer = Composer::<Plonkish>::initialized();
         let scalar = composer.append_witness(JubJubScalar::one());
 
         let result = composer.component_mul_generator(scalar, generator);
 
         assert!(
-            matches!(result, Err(Error::JubJubGeneratorNotPrimeOrder)),
+            matches!(result, Err(CircuitError::JubJubGeneratorNotPrimeOrder)),
             "order {order}"
         );
     }
@@ -619,13 +643,13 @@ fn component_mul_generator_rejects_mixed_order_generator() {
         assert!(!bool::from(generator.is_identity()), "order {order}");
         assert!(!bool::from(generator.is_small_order()), "order {order}");
 
-        let mut composer = Composer::initialized();
+        let mut composer = Composer::<Plonkish>::initialized();
         let scalar = composer.append_witness(JubJubScalar::one());
 
         let result = composer.component_mul_generator(scalar, generator);
 
         assert!(
-            matches!(result, Err(Error::JubJubGeneratorNotPrimeOrder)),
+            matches!(result, Err(CircuitError::JubJubGeneratorNotPrimeOrder)),
             "order {order}"
         );
     }
@@ -633,7 +657,7 @@ fn component_mul_generator_rejects_mixed_order_generator() {
 
 #[test]
 fn component_mul_generator_rejects_non_canonical_scalar() {
-    let mut composer = Composer::initialized();
+    let mut composer = Composer::<Plonkish>::initialized();
     // A BLS scalar at or above the Jubjub scalar modulus: the witness has no
     // canonical Jubjub encoding, so the scalar guard rejects it. The generator
     // is honest, so it cannot be what rejects the call.
@@ -642,12 +666,12 @@ fn component_mul_generator_rejects_non_canonical_scalar() {
     let result = composer
         .component_mul_generator(scalar, dusk_jubjub::GENERATOR_EXTENDED);
 
-    assert!(matches!(result, Err(Error::JubJubScalarMalformed)));
+    assert!(matches!(result, Err(CircuitError::JubJubScalarMalformed)));
 }
 
 #[test]
 fn component_mul_generator_accepts_prime_order_generator() {
-    let mut composer = Composer::initialized();
+    let mut composer = Composer::<Plonkish>::initialized();
     let scalar = composer.append_witness(JubJubScalar::one());
     // An honest base other than `GENERATOR`, so the rejection tests above
     // cannot pass by refusing every generator.
@@ -677,43 +701,43 @@ fn zero_z_point() -> JubJubExtended {
 
 #[test]
 fn append_point_rejects_zero_z_point() {
-    let mut composer = Composer::initialized();
+    let mut composer = Composer::<Plonkish>::initialized();
 
     let result = composer.append_point(zero_z_point());
 
-    assert!(matches!(result, Err(Error::JubJubPointDegenerate)));
+    assert!(matches!(result, Err(CircuitError::JubJubPointDegenerate)));
 }
 
 #[test]
 fn append_public_point_rejects_zero_z_point() {
-    let mut composer = Composer::initialized();
+    let mut composer = Composer::<Plonkish>::initialized();
 
     let result = composer.append_public_point(zero_z_point());
 
-    assert!(matches!(result, Err(Error::JubJubPointDegenerate)));
+    assert!(matches!(result, Err(CircuitError::JubJubPointDegenerate)));
 }
 
 #[test]
 fn assert_equal_public_point_rejects_zero_z_point() {
-    let mut composer = Composer::initialized();
+    let mut composer = Composer::<Plonkish>::initialized();
     let point = composer
         .append_point(dusk_jubjub::GENERATOR)
         .expect("an honest generator should be appendable");
 
     let result = composer.assert_equal_public_point(point, zero_z_point());
 
-    assert!(matches!(result, Err(Error::JubJubPointDegenerate)));
+    assert!(matches!(result, Err(CircuitError::JubJubPointDegenerate)));
 }
 
 #[test]
 fn append_constant_point_separates_its_rejection_branches() {
-    let mut composer = Composer::initialized();
+    let mut composer = Composer::<Plonkish>::initialized();
 
     // Degenerate representation: refused before the membership check, which
     // is the only order in which its `is_on_curve` half can run at all.
     assert!(matches!(
         composer.append_constant_point(zero_z_point()),
-        Err(Error::JubJubPointDegenerate)
+        Err(CircuitError::JubJubPointDegenerate)
     ));
 
     // Representable but outside the prime-order subgroup: the native
@@ -721,7 +745,7 @@ fn append_constant_point_separates_its_rejection_branches() {
     for (order, point) in torsion_points() {
         assert_eq!(
             composer.append_constant_point(point).unwrap_err(),
-            Error::JubJubPointNotTorsionFree,
+            CircuitError::JubJubPointNotTorsionFree,
             "order {order}"
         );
     }
@@ -729,7 +753,7 @@ fn append_constant_point_separates_its_rejection_branches() {
 
 #[test]
 fn append_constant_point_rejects_inconsistent_extended_coordinates() {
-    let mut composer = Composer::initialized();
+    let mut composer = Composer::<Plonkish>::initialized();
     // The affine projection is the honest generator — on-curve and of prime
     // order — while `T1 · T2 != U · V · Z`. Validating the extended point
     // catches that; validating its projection, as the guard did while it sat
@@ -747,12 +771,15 @@ fn append_constant_point_rejects_inconsistent_extended_coordinates() {
 
     let result = composer.append_constant_point(point);
 
-    assert!(matches!(result, Err(Error::JubJubPointNotTorsionFree)));
+    assert!(matches!(
+        result,
+        Err(CircuitError::JubJubPointNotTorsionFree)
+    ));
 }
 
 #[test]
 fn point_entry_points_accept_honest_points() {
-    let mut composer = Composer::initialized();
+    let mut composer = Composer::<Plonkish>::initialized();
     // An honest base other than `GENERATOR`, in both accepted input forms, so
     // the rejection tests above cannot pass against entry points that refuse
     // every point.
@@ -809,7 +836,10 @@ fn component_mul_point() {
     }
 
     impl Circuit for TestCircuit {
-        fn circuit(&self, composer: &mut Composer) -> Result<(), Error> {
+        fn circuit<B: ComposerBackend>(
+            &self,
+            composer: &mut Composer<B>,
+        ) -> Result<(), CircuitError> {
             let w_scalar = composer.append_witness(self.scalar);
             let w_point = composer.append_point(self.point)?;
             let w_result = composer.append_point(self.result)?;

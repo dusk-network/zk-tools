@@ -6,7 +6,7 @@
 
 //! This module contains an implementation of the `Hades252` permutation
 //! algorithm specifically designed to work outside of Rank 1 Constraint Systems
-//! (R1CS) or other custom Constraint Systems such as Add/Mul/Custom plonk
+//! generic or custom constraint systems such as Add/Mul/Custom PLONK
 //! gate-circuits.
 //!
 //! The inputs of the permutation function have to be explicitly over the

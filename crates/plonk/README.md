@@ -37,6 +37,9 @@ This crate includes a variety of features which are briefly explained below:
   explicit migration.
 - `debug`: Enables the runtime debugger backend, outputting [CDF](https://crates.io/crates/dusk-cdf) files to the path defined in the `CDF_OUTPUT` environment variable. When used, the binary must be compiled with `debug = true`. For more info, check the [cargo book](https://doc.rust-lang.org/cargo/reference/profiles.html#debug).
   __It is recommended to derive the std output and std error and then place them in a text file for efficient gate analysis.__
+- `legacy-proving`: Enables creation of legacy V2 proofs through
+  `Prover::prove_with_version`. Legacy proving is disabled by default; current
+  V3 proving and legacy verification do not require this feature.
 
 ## Documentation
 

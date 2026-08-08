@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Make the Merkle opening gadget depend on the proof-system-neutral
+  `dusk-zk-composer` crate; PLONK is now needed only by proving tests, examples, and
+  benchmarks ([#5](https://github.com/dusk-network/zk-tools/issues/5)).
 - Replace the direct `dusk-bls12_381` dependency with `dusk-curves` and require
   consumers to select either the Dusk or BLST backend explicitly
   ([#2](https://github.com/dusk-network/zk-tools/issues/2))

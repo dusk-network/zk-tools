@@ -42,7 +42,10 @@ fn gate_add_mul() {
     }
 
     impl Circuit for TestCircuit {
-        fn circuit(&self, composer: &mut Composer) -> Result<(), Error> {
+        fn circuit<B: ComposerBackend>(
+            &self,
+            composer: &mut Composer<B>,
+        ) -> Result<(), CircuitError> {
             let w_a = composer.append_witness(self.a);
             let w_b = composer.append_witness(self.b);
             let w_d = composer.append_witness(self.d);

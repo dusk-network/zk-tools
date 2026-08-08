@@ -5,7 +5,7 @@
 // Copyright (c) DUSK NETWORK. All rights reserved.
 
 use dusk_jubjub::GENERATOR_EXTENDED;
-use dusk_plonk::prelude::{Error as PlonkError, *};
+use dusk_plonk::prelude::*;
 use ff::Field;
 use jubjub_schnorr::{
     PublicKey, PublicKeyDouble, PublicKeyVarGen, SecretKey, SecretKeyVarGen,
@@ -67,7 +67,10 @@ impl SignatureCircuit {
 }
 
 impl Circuit for SignatureCircuit {
-    fn circuit(&self, composer: &mut Composer) -> Result<(), PlonkError> {
+    fn circuit<B: ComposerBackend>(
+        &self,
+        composer: &mut Composer<B>,
+    ) -> Result<(), CircuitError> {
         let u = composer.append_witness(*self.signature.u());
         let r = composer.append_point(*self.signature.R())?;
 
@@ -133,7 +136,10 @@ impl IdentityPublicKeyCircuit {
 }
 
 impl Circuit for IdentityPublicKeyCircuit {
-    fn circuit(&self, composer: &mut Composer) -> Result<(), PlonkError> {
+    fn circuit<B: ComposerBackend>(
+        &self,
+        composer: &mut Composer<B>,
+    ) -> Result<(), CircuitError> {
         let u = composer.append_witness(self.u);
         let r = composer.append_point(self.r)?;
         let pk = composer.append_point(JubJubExtended::identity())?;
@@ -197,7 +203,10 @@ impl SignatureDoubleCircuit {
 }
 
 impl Circuit for SignatureDoubleCircuit {
-    fn circuit(&self, composer: &mut Composer) -> Result<(), PlonkError> {
+    fn circuit<B: ComposerBackend>(
+        &self,
+        composer: &mut Composer<B>,
+    ) -> Result<(), CircuitError> {
         let u = composer.append_witness(*self.signature.u());
         let r = composer.append_point(*self.signature.R())?;
         let r_p = composer.append_point(*self.signature.R_prime())?;
@@ -285,7 +294,10 @@ impl SignatureVarGenCircuit {
 }
 
 impl Circuit for SignatureVarGenCircuit {
-    fn circuit(&self, composer: &mut Composer) -> Result<(), PlonkError> {
+    fn circuit<B: ComposerBackend>(
+        &self,
+        composer: &mut Composer<B>,
+    ) -> Result<(), CircuitError> {
         let u = composer.append_witness(*self.signature.u());
         let r = composer.append_point(*self.signature.R())?;
 
@@ -379,7 +391,10 @@ impl VarGenScalarCircuit {
 }
 
 impl Circuit for VarGenScalarCircuit {
-    fn circuit(&self, composer: &mut Composer) -> Result<(), PlonkError> {
+    fn circuit<B: ComposerBackend>(
+        &self,
+        composer: &mut Composer<B>,
+    ) -> Result<(), CircuitError> {
         let u = composer.append_witness(self.u);
         let r = composer.append_point(self.r)?;
         let pk = composer.append_point(self.pk)?;

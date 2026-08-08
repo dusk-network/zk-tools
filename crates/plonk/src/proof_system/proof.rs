@@ -1027,9 +1027,10 @@ mod soundness_tests {
 
     use crate::commitment_scheme::{CommitKey, PublicParameters};
     use crate::compiler::{Compiler, Prover, Verifier};
-    use crate::composer::{Circuit, Composer, Constraint};
-    use crate::error::Error;
     use crate::fft::{EvaluationDomain, Polynomial};
+    use crate::prelude::{
+        Circuit, CircuitError, Composer, ComposerBackend, Constraint, Plonkish,
+    };
     use crate::proof_system::linearization_poly::{self, ProofEvaluations};
     use crate::proof_system::proof::{self, Proof};
     use crate::transcript::TranscriptProtocol;
@@ -1045,7 +1046,10 @@ mod soundness_tests {
     }
 
     impl Circuit for ArithCircuit {
-        fn circuit(&self, composer: &mut Composer) -> Result<(), Error> {
+        fn circuit<B: ComposerBackend>(
+            &self,
+            composer: &mut Composer<B>,
+        ) -> Result<(), CircuitError> {
             let w_a = composer.append_witness(self.a);
             let w_b = composer.append_witness(self.b);
             let w_d = composer.append_witness(self.d);
@@ -1088,7 +1092,8 @@ mod soundness_tests {
         circuit: &ArithCircuit,
         rng: &mut (impl RngCore + CryptoRng),
     ) -> (Proof, Vec<BlsScalar>) {
-        let composed = Composer::prove(prover.constraints, circuit).unwrap();
+        let composed =
+            Composer::<Plonkish>::build(prover.constraints, circuit).unwrap();
         let size = prover.size;
         let domain = EvaluationDomain::new(prover.constraints).unwrap();
 
@@ -1096,7 +1101,7 @@ mod soundness_tests {
 
         let public_inputs = composed.public_inputs();
         let public_input_indexes = composed.public_input_indexes();
-        let dense_public_inputs = Composer::dense_public_inputs(
+        let dense_public_inputs = Composer::<Plonkish>::dense_public_inputs(
             &public_input_indexes,
             &public_inputs,
             prover.size,
@@ -1113,14 +1118,14 @@ mod soundness_tests {
         let mut d_scalars = vec![BlsScalar::zero(); size];
 
         composed
-            .constraints
+            .gates()
             .iter()
             .enumerate()
             .for_each(|(i, constraint)| {
-                a_scalars[i] = composed[constraint.a];
-                b_scalars[i] = composed[constraint.b];
-                c_scalars[i] = composed[constraint.c];
-                d_scalars[i] = composed[constraint.d];
+                a_scalars[i] = composed[constraint.a()];
+                b_scalars[i] = composed[constraint.b()];
+                c_scalars[i] = composed[constraint.c()];
+                d_scalars[i] = composed[constraint.d()];
             });
 
         let a_poly = Prover::blind_poly(rng, &a_scalars, 1, &domain);

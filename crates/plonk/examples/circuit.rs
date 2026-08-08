@@ -25,7 +25,10 @@ pub struct TestCircuit {
 // 4) a * b + d = 42
 // 5) JubJub::GENERATOR * e(JubJubScalar) = f where F is a Public Input
 impl Circuit for TestCircuit {
-    fn circuit(&self, composer: &mut Composer) -> Result<(), Error> {
+    fn circuit<B: ComposerBackend>(
+        &self,
+        composer: &mut Composer<B>,
+    ) -> Result<(), CircuitError> {
         let a = composer.append_witness(self.a);
         let b = composer.append_witness(self.b);
         let d = composer.append_witness(self.d);

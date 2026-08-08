@@ -5,28 +5,28 @@
 // Copyright (c) DUSK NETWORK. All rights reserved.
 
 use dusk_curves::bls12_381::BlsScalar;
-use dusk_plonk::prelude::*;
 use dusk_safe::Safe;
+use dusk_zk_composer::prelude::*;
 
 use super::Hades;
 use crate::hades::round_constants::ROUNDS;
 use crate::hades::{MDS_MATRIX, ROUND_CONSTANTS, WIDTH};
 
 /// An implementation for the [`Hades`] permutation operating on [`Witness`]es.
-/// Requires a reference to a plonk circuit [`Composer`].
-pub(crate) struct GadgetPermutation<'a> {
+/// Requires a reference to a circuit [`Composer`].
+pub(crate) struct GadgetPermutation<'a, B: ComposerBackend> {
     /// A reference to the constraint system used by the gadgets
-    composer: &'a mut Composer,
+    composer: &'a mut Composer<B>,
 }
 
-impl<'a> GadgetPermutation<'a> {
+impl<'a, B: ComposerBackend> GadgetPermutation<'a, B> {
     /// Constructs a new `GadgetPermutation` with the constraint system.
-    pub fn new(composer: &'a mut Composer) -> Self {
+    pub fn new(composer: &'a mut Composer<B>) -> Self {
         Self { composer }
     }
 }
 
-impl<'a> Safe<Witness, WIDTH> for GadgetPermutation<'a> {
+impl<B: ComposerBackend> Safe<Witness, WIDTH> for GadgetPermutation<'_, B> {
     fn permute(&mut self, state: &mut [Witness; WIDTH]) {
         self.perm(state);
     }
@@ -43,7 +43,7 @@ impl<'a> Safe<Witness, WIDTH> for GadgetPermutation<'a> {
     }
 }
 
-impl<'a> Hades<Witness> for GadgetPermutation<'a> {
+impl<B: ComposerBackend> Hades<Witness> for GadgetPermutation<'_, B> {
     fn add_round_constants(
         &mut self,
         round: usize,
@@ -76,7 +76,7 @@ impl<'a> Hades<Witness> for GadgetPermutation<'a> {
 
     /// Adds a constraint for each matrix coefficient multiplication
     fn mul_matrix(&mut self, round: usize, state: &mut [Witness; WIDTH]) {
-        let mut result = [Composer::ZERO; WIDTH];
+        let mut result = [Witness::ZERO; WIDTH];
 
         // Implementation optimized for WIDTH = 5
         //
@@ -133,7 +133,9 @@ impl<'a> Hades<Witness> for GadgetPermutation<'a> {
 }
 
 #[cfg(feature = "encryption")]
-impl dusk_safe::Encryption<Witness, WIDTH> for GadgetPermutation<'_> {
+impl<B: ComposerBackend> dusk_safe::Encryption<Witness, WIDTH>
+    for GadgetPermutation<'_, B>
+{
     fn subtract(&mut self, minuend: &Witness, subtrahend: &Witness) -> Witness {
         let constraint = Constraint::new()
             .left(1)
@@ -155,6 +157,9 @@ impl dusk_safe::Encryption<Witness, WIDTH> for GadgetPermutation<'_> {
 mod tests {
     use core::result::Result;
 
+    use dusk_plonk::prelude::{
+        Compiler, Error as PlonkError, Prover, PublicParameters, Verifier,
+    };
     use ff::Field;
     use rand::SeedableRng;
     use rand::rngs::StdRng;
@@ -169,8 +174,11 @@ mod tests {
     }
 
     impl Circuit for TestCircuit {
-        fn circuit(&self, composer: &mut Composer) -> Result<(), Error> {
-            let zero = Composer::ZERO;
+        fn circuit<B: ComposerBackend>(
+            &self,
+            composer: &mut Composer<B>,
+        ) -> Result<(), CircuitError> {
+            let zero = Composer::<B>::ZERO;
 
             let mut perm: [Witness; WIDTH] = [zero; WIDTH];
 
@@ -218,7 +226,7 @@ mod tests {
     }
 
     /// Setup the test circuit prover and verifier
-    fn setup() -> Result<(Prover, Verifier), Error> {
+    fn setup() -> Result<(Prover, Verifier), PlonkError> {
         const CAPACITY: usize = 1 << 10;
 
         let mut rng = StdRng::seed_from_u64(0xbeef);
@@ -230,7 +238,7 @@ mod tests {
     }
 
     #[test]
-    fn preimage() -> Result<(), Error> {
+    fn preimage() -> Result<(), PlonkError> {
         let (prover, verifier) = setup()?;
 
         let (i, o) = hades();
@@ -248,7 +256,7 @@ mod tests {
     }
 
     #[test]
-    fn preimage_constant() -> Result<(), Error> {
+    fn preimage_constant() -> Result<(), PlonkError> {
         let (prover, verifier) = setup()?;
 
         // Prepare input & output
@@ -269,7 +277,7 @@ mod tests {
     }
 
     #[test]
-    fn preimage_fails() -> Result<(), Error> {
+    fn preimage_fails() -> Result<(), PlonkError> {
         let (prover, _) = setup()?;
 
         // Generate [31, 0, 0, 0, 0] as real input to the perm but build the

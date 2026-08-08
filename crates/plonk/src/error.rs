@@ -7,6 +7,8 @@
 //! A collection of all possible errors encountered in PLONK.
 
 use dusk_bytes::Error as DuskBytesError;
+#[cfg(feature = "alloc")]
+use dusk_zk_composer::Error as CircuitError;
 
 /// Defines all possible errors that can be encountered in PLONK.
 #[derive(Debug, Clone, PartialEq)]
@@ -36,10 +38,6 @@ pub enum Error {
     /// This error occurs when the Prover structure already contains a
     /// preprocessed circuit inside, but you call preprocess again.
     CircuitAlreadyPreprocessed,
-    /// This error occurs when the circuit description has a different amount
-    /// of gates than the circuit for the proof creation.
-    /// The order: (description_size, circuit_size)
-    InvalidCircuitSize(usize, usize),
     /// This error occurs when proof creation fails because the constraint
     /// system is not satisfied: the witness assignment or the appended
     /// constants do not match the compiled circuit description.
@@ -78,25 +76,6 @@ pub enum Error {
     NotEnoughBytes,
     /// This error occurs when a malformed point is decoded from a byte array.
     PointMalformed,
-    /// This error occurs when a malformed BLS scalar is decoded from a byte
-    /// array.
-    BlsScalarMalformed,
-    /// This error occurs when a malformed JubJub scalar is decoded from a byte
-    /// array.
-    JubJubScalarMalformed,
-    /// This error occurs when a fixed-base generator is not a prime-order
-    /// Jubjub point.
-    JubJubGeneratorNotPrimeOrder,
-    /// This error occurs when a JubJub point appended to a circuit as a
-    /// constant is not an on-curve member of the prime-order subgroup in a
-    /// consistent extended representation.
-    JubJubPointNotTorsionFree,
-    /// This error occurs when a JubJub point in extended coordinates has a
-    /// zero `Z` coordinate, denoting no affine point, and so cannot be
-    /// appended to a circuit or compared against.
-    JubJubPointDegenerate,
-    /// WNAF2k should be in `[-1, 0, 1]`
-    UnsupportedWNAF2k,
     /// The provided public inputs doesn't match the circuit definition
     PublicInputNotFound {
         /// Expected public input wasn't found
@@ -109,8 +88,9 @@ pub enum Error {
         /// Provided value
         provided: usize,
     },
-    /// The provided compressed circuit bytes representation is invalid.
-    InvalidCompressedCircuit,
+    /// Circuit construction or compressed-description error.
+    #[cfg(feature = "alloc")]
+    Circuit(CircuitError),
     /// Legacy proving was requested but this build disables legacy proving.
     LegacyProvingDisabled,
     /// The requested proving version is no longer supported.
@@ -148,12 +128,6 @@ impl std::fmt::Display for Error {
             Self::CircuitAlreadyPreprocessed => {
                 write!(f, "circuit has already been preprocessed")
             }
-            Self::InvalidCircuitSize(description_size, circuit_size) => {
-                write!(
-                    f,
-                    "circuit description has a different amount of gates than the circuit for the proof creation: description size = {description_size}, circuit size = {circuit_size}"
-                )
-            }
             Self::CircuitUnsatisfied => write!(
                 f,
                 "the circuit is not satisfied: the witness assignment or the \
@@ -180,25 +154,7 @@ impl std::fmt::Display for Error {
             Self::PairingCheckFailure => write!(f, "pairing check failed"),
             Self::NotEnoughBytes => write!(f, "not enough bytes left to read"),
             Self::PointMalformed => write!(f, "BLS point bytes malformed"),
-            Self::BlsScalarMalformed => write!(f, "BLS scalar bytes malformed"),
-            Self::JubJubScalarMalformed => {
-                write!(f, "JubJub scalar bytes malformed")
-            }
-            Self::JubJubGeneratorNotPrimeOrder => {
-                write!(f, "JubJub generator is not a prime-order point")
-            }
-            Self::JubJubPointNotTorsionFree => {
-                write!(f, "JubJub point is not in the prime-order subgroup")
-            }
-            Self::JubJubPointDegenerate => write!(
-                f,
-                "JubJub point has a zero Z coordinate and denotes no affine point"
-            ),
             Self::BytesError(err) => write!(f, "{:?}", err),
-            Self::UnsupportedWNAF2k => write!(
-                f,
-                "WNAF2k cannot hold values not contained in `[-1..1]`"
-            ),
             Self::PublicInputNotFound { index } => write!(
                 f,
                 "The public input of index {} is defined in the circuit description, but wasn't declared in the prove instance",
@@ -209,9 +165,8 @@ impl std::fmt::Display for Error {
                 "The provided public inputs set of length {} doesn't match the processed verifier: {}",
                 provided, expected
             ),
-            Self::InvalidCompressedCircuit => {
-                write!(f, "invalid compressed circuit")
-            }
+            #[cfg(feature = "alloc")]
+            Self::Circuit(err) => write!(f, "circuit error: {err}"),
             Self::LegacyProvingDisabled => {
                 write!(f, "legacy proving is disabled in this build")
             }
@@ -225,6 +180,13 @@ impl std::fmt::Display for Error {
 impl From<DuskBytesError> for Error {
     fn from(bytes_err: DuskBytesError) -> Self {
         Self::BytesError(bytes_err)
+    }
+}
+
+#[cfg(feature = "alloc")]
+impl From<CircuitError> for Error {
+    fn from(error: CircuitError) -> Self {
+        Self::Circuit(error)
     }
 }
 
@@ -247,7 +209,7 @@ mod tests {
         assert!(matches!(bytes_error, Error::BytesError(_)));
 
         // Format each variant at least once so the `Display` impl gets covered.
-        let all_errors: [Error; 26] = [
+        let all_errors: [Error; 19] = [
             Error::InvalidEvalDomainSize {
                 log_size_of_group: 32,
                 adacity: 28,
@@ -257,7 +219,7 @@ mod tests {
             Error::UninitializedPIGenerator,
             Error::InvalidPublicInputBytes,
             Error::CircuitAlreadyPreprocessed,
-            Error::InvalidCircuitSize(1, 2),
+            Error::Circuit(CircuitError::InvalidCircuitSize(1, 2)),
             Error::CircuitUnsatisfied,
             Error::MismatchedPolyLen,
             Error::DegreeIsZero,
@@ -268,13 +230,6 @@ mod tests {
             Error::PairingCheckFailure,
             Error::NotEnoughBytes,
             Error::PointMalformed,
-            Error::BlsScalarMalformed,
-            Error::JubJubScalarMalformed,
-            Error::JubJubGeneratorNotPrimeOrder,
-            Error::JubJubPointNotTorsionFree,
-            Error::JubJubPointDegenerate,
-            Error::UnsupportedWNAF2k,
-            Error::InvalidCompressedCircuit,
             Error::LegacyProvingDisabled,
             Error::UnsupportedProvingVersion,
         ];

@@ -9,7 +9,8 @@ use dusk_curves::bls12_381::BlsScalar;
 use crate::commitment_scheme::{CommitKey, OpeningKey, PublicParameters};
 use crate::error::Error;
 use crate::fft::{EvaluationDomain, Evaluations, Polynomial};
-use crate::prelude::{Circuit, Composer};
+use crate::permutation::Permutation;
+use crate::prelude::{Circuit, Composer, Plonkish};
 use crate::proof_system::preprocess::Polynomials;
 use crate::proof_system::{ProverKey, widget};
 
@@ -55,7 +56,7 @@ impl Compiler {
     where
         C: Circuit,
     {
-        let mut composer = Composer::initialized();
+        let mut composer = Composer::<Plonkish>::initialized();
         C::default().circuit(&mut composer)?;
 
         Self::compile_with_composer(pp, label, &composer)
@@ -72,7 +73,7 @@ impl Compiler {
     where
         C: Circuit,
     {
-        let mut composer = Composer::initialized();
+        let mut composer = Composer::<Plonkish>::initialized();
         circuit.circuit(&mut composer)?;
 
         Self::compile_with_composer(pp, label, &composer)
@@ -85,7 +86,7 @@ impl Compiler {
         label: &[u8],
         compressed: &[u8],
     ) -> Result<(Prover, Verifier), Error> {
-        let composer = Composer::from_bytes(compressed)?;
+        let composer = Composer::<Plonkish>::from_bytes(compressed)?;
 
         Self::compile_with_composer(pp, label, &composer)
     }
@@ -96,7 +97,7 @@ impl Compiler {
     fn compile_with_composer(
         pp: &PublicParameters,
         label: &[u8],
-        composer: &Composer,
+        composer: &Composer<Plonkish>,
     ) -> Result<(Prover, Verifier), Error> {
         let n = (composer.constraints() + 6).next_power_of_two();
 
@@ -112,9 +113,9 @@ impl Compiler {
         label: &[u8],
         commit_key: CommitKey,
         opening_key: OpeningKey,
-        prover: &Composer,
+        prover: &Composer<Plonkish>,
     ) -> Result<(Prover, Verifier), Error> {
-        let mut perm = prover.perm.clone();
+        let mut perm = Permutation::from_composer(prover);
 
         let constraints = prover.constraints();
         let size = constraints.next_power_of_two();
@@ -138,21 +139,21 @@ impl Compiler {
         let mut q_variable_group_add = vec![BlsScalar::zero(); size];
 
         prover
-            .constraints
+            .gates()
             .iter()
             .enumerate()
             .for_each(|(i, constraint)| {
-                q_m[i] = constraint.q_m;
-                q_l[i] = constraint.q_l;
-                q_r[i] = constraint.q_r;
-                q_o[i] = constraint.q_o;
-                q_f[i] = constraint.q_f;
-                q_c[i] = constraint.q_c;
-                q_arith[i] = constraint.q_arith;
-                q_range[i] = constraint.q_range;
-                q_logic[i] = constraint.q_logic;
-                q_fixed_group_add[i] = constraint.q_fixed_group_add;
-                q_variable_group_add[i] = constraint.q_variable_group_add;
+                q_m[i] = *constraint.q_m();
+                q_l[i] = *constraint.q_l();
+                q_r[i] = *constraint.q_r();
+                q_o[i] = *constraint.q_o();
+                q_f[i] = *constraint.q_f();
+                q_c[i] = *constraint.q_c();
+                q_arith[i] = *constraint.q_arith();
+                q_range[i] = *constraint.q_range();
+                q_logic[i] = *constraint.q_logic();
+                q_fixed_group_add[i] = *constraint.q_fixed_group_add();
+                q_variable_group_add[i] = *constraint.q_variable_group_add();
             });
 
         let q_m_poly = domain.ifft(&q_m);

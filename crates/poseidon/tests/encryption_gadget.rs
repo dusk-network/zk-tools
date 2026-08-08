@@ -73,9 +73,12 @@ impl<const L: usize> Default for EncryptionCircuit<L> {
 }
 
 impl<const L: usize> Circuit for EncryptionCircuit<L> {
-    fn circuit(&self, composer: &mut Composer) -> Result<(), PlonkError> {
+    fn circuit<B: ComposerBackend>(
+        &self,
+        composer: &mut Composer<B>,
+    ) -> Result<(), CircuitError> {
         // append all variables to the circuit
-        let mut message_wit = [Composer::ZERO; L];
+        let mut message_wit = [Composer::<B>::ZERO; L];
         message_wit
             .iter_mut()
             .zip(self.message)

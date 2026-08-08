@@ -18,6 +18,7 @@ use crate::commitment_scheme::CommitKey;
 use crate::compiler::prover::linearization_poly::ProofEvaluations;
 use crate::error::Error;
 use crate::fft::{EvaluationDomain, Polynomial};
+use crate::prelude::Plonkish;
 use crate::proof_system::proof::Proof;
 use crate::proof_system::{
     ProverKey, VerifierKey, linearization_poly, quotient_poly,
@@ -306,7 +307,9 @@ impl Prover {
         C: Circuit,
         R: RngCore + CryptoRng,
     {
-        let prover = Composer::prove(self.constraints, circuit)?;
+        let prover = Composer::<Plonkish>::build(self.constraints, circuit)?;
+        let permutation =
+            crate::permutation::Permutation::from_composer(&prover);
 
         let constraints = self.constraints;
         let size = self.size;
@@ -317,7 +320,7 @@ impl Prover {
 
         let public_inputs = prover.public_inputs();
         let public_input_indexes = prover.public_input_indexes();
-        let dense_public_inputs = Composer::dense_public_inputs(
+        let dense_public_inputs = Composer::<Plonkish>::dense_public_inputs(
             &public_input_indexes,
             &public_inputs,
             self.size,
@@ -335,14 +338,14 @@ impl Prover {
         let mut d_scalars = vec![BlsScalar::zero(); size];
 
         prover
-            .constraints
+            .gates()
             .iter()
             .enumerate()
             .for_each(|(i, constraint)| {
-                a_scalars[i] = prover[constraint.a];
-                b_scalars[i] = prover[constraint.b];
-                c_scalars[i] = prover[constraint.c];
-                d_scalars[i] = prover[constraint.d];
+                a_scalars[i] = prover[constraint.a()];
+                b_scalars[i] = prover[constraint.b()];
+                c_scalars[i] = prover[constraint.c()];
+                d_scalars[i] = prover[constraint.d()];
             });
 
         let a_poly = Self::blind_poly(rng, &a_scalars, 1, &domain);
@@ -381,8 +384,7 @@ impl Prover {
             c_scalars.as_slice(),
             d_scalars.as_slice(),
         ];
-        let permutation = prover
-            .perm
+        let permutation = permutation
             .compute_permutation_vec(&domain, wires, &beta, &gamma, sigma);
 
         let z_poly = Self::blind_poly(rng, &permutation, 2, &domain);
@@ -651,13 +653,19 @@ mod tests {
 
     use super::Prover;
     use crate::error::Error;
-    use crate::prelude::{Circuit, Compiler, Composer, PublicParameters};
+    use crate::prelude::{
+        Circuit, CircuitError, Compiler, Composer, ComposerBackend,
+        PublicParameters,
+    };
 
     #[derive(Default)]
     struct MinimalCircuit;
 
     impl Circuit for MinimalCircuit {
-        fn circuit(&self, composer: &mut Composer) -> Result<(), Error> {
+        fn circuit<B: ComposerBackend>(
+            &self,
+            composer: &mut Composer<B>,
+        ) -> Result<(), CircuitError> {
             let w = composer.append_witness(BlsScalar::from(7u64));
             composer.assert_equal_constant(w, BlsScalar::from(7u64), None);
             Ok(())

@@ -54,21 +54,19 @@ if #[cfg(feature = "alloc")] {
     #[cfg_attr(not(feature = "std"), macro_use)]
     extern crate alloc;
 
-    mod bit_iterator;
     mod compiler;
-    mod composer;
-    mod runtime;
+    mod permutation;
     mod util;
     mod transcript;
 
 });
 
-#[cfg(feature = "debug")]
-pub(crate) mod debugger;
-
 mod commitment_scheme;
 mod error;
 mod fft;
 mod proof_system;
+
+#[cfg(all(test, feature = "alloc", feature = "std"))]
+mod soundness_tests;
 
 pub mod prelude;

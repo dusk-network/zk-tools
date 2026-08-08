@@ -5,7 +5,8 @@
 // Copyright (c) DUSK NETWORK. All rights reserved.
 
 use dusk_plonk::prelude::{
-    BlsScalar, Circuit, Compiler, Composer, Constraint, Error as PlonkError, PublicParameters,
+    BlsScalar, Circuit, CircuitError, Compiler, Composer, ComposerBackend, Constraint,
+    PublicParameters,
 };
 use rand_chacha::ChaCha20Rng;
 use rand_core::SeedableRng;
@@ -35,7 +36,7 @@ impl TestCircuit {
 }
 
 impl Circuit for TestCircuit {
-    fn circuit(&self, composer: &mut Composer) -> Result<(), PlonkError> {
+    fn circuit<B: ComposerBackend>(&self, composer: &mut Composer<B>) -> Result<(), CircuitError> {
         let left = composer.append_witness(self.left);
         let right = composer.append_witness(self.right);
 

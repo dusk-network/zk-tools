@@ -12,7 +12,10 @@ use rand::rngs::StdRng;
 struct MulCircuit;
 
 impl Circuit for MulCircuit {
-    fn circuit(&self, composer: &mut Composer) -> Result<(), Error> {
+    fn circuit<B: ComposerBackend>(
+        &self,
+        composer: &mut Composer<B>,
+    ) -> Result<(), CircuitError> {
         let a = composer.append_witness(BlsScalar::from(3u64));
         let b = composer.append_witness(BlsScalar::from(4u64));
         let expected = composer.append_witness(BlsScalar::from(12u64));

@@ -49,7 +49,10 @@ fn component_select() {
     }
 
     impl Circuit for TestCircuit {
-        fn circuit(&self, composer: &mut Composer) -> Result<(), Error> {
+        fn circuit<B: ComposerBackend>(
+            &self,
+            composer: &mut Composer<B>,
+        ) -> Result<(), CircuitError> {
             let w_bit = composer.append_witness(self.bit);
             let w_value_a = composer.append_witness(self.value_a);
             let w_value_b = composer.append_witness(self.value_b);
@@ -209,7 +212,10 @@ fn component_select_one() {
         }
     }
     impl Circuit for TestCircuit {
-        fn circuit(&self, composer: &mut Composer) -> Result<(), Error> {
+        fn circuit<B: ComposerBackend>(
+            &self,
+            composer: &mut Composer<B>,
+        ) -> Result<(), CircuitError> {
             let w_bit = composer.append_witness(self.bit);
             let w_value = composer.append_witness(self.value);
             let w_result = composer.append_witness(self.result);
@@ -356,7 +362,10 @@ fn component_select_zero() {
         }
     }
     impl Circuit for TestCircuit {
-        fn circuit(&self, composer: &mut Composer) -> Result<(), Error> {
+        fn circuit<B: ComposerBackend>(
+            &self,
+            composer: &mut Composer<B>,
+        ) -> Result<(), CircuitError> {
             let w_bit = composer.append_witness(self.bit);
             let w_value = composer.append_witness(self.value);
             let w_result = composer.append_witness(self.result);
