@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Exercise the Merkle opening circuit test with both PLONK and Groth16.
+- Benchmark Merkle opening proof generation and verification with Groth16 in
+  addition to PLONK.
 - Make the Merkle opening gadget depend on the proof-system-neutral
   `dusk-zk-composer` crate; PLONK is now needed only by proving tests, examples, and
   benchmarks ([#5](https://github.com/dusk-network/zk-tools/issues/5)).
