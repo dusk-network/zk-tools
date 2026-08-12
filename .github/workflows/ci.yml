@@ -12,6 +12,10 @@ permissions:
 env:
   CARGO_TERM_COLOR: always
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   formatting:
     name: Formatting
@@ -23,65 +27,31 @@ jobs:
           components: rustfmt
       - run: make fmt CHECK=1
 
-  build:
-    name: Build all crates (BLST backend)
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-      - uses: dtolnay/rust-toolchain@stable
-      # The workspace includes plonkwasm. Backend selection is explicit, and
-      # the Merkle crates expose mutually exclusive size_* features, so
-      # --all-features is not a valid feature set.
-      - run: make build
-
-  test:
-    name: Tests (BLST backend)
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-      - uses: dtolnay/rust-toolchain@stable
-      - run: make test
-
-  clippy:
-    name: Clippy (BLST backend)
+  validation:
+    name: Workspace validation
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: clippy
-      - run: make clippy
-
-  no-std:
-    # BLST is the repository backend except where native BLST cannot target the
-    # bare-metal/WASM configurations covered by the no_std checks.
-    name: no_std and WASM (Dusk backend)
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-      - uses: dtolnay/rust-toolchain@stable
-      - run: make no-std
-
-  benches:
-    name: Build benchmarks (BLST backend)
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-      - uses: dtolnay/rust-toolchain@stable
-      - run: make build-benches
-
-  documentation:
-    name: Documentation (BLST backend)
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-      - uses: dtolnay/rust-toolchain@stable
-      - run: make doc
-
-  examples:
-    name: Examples (BLST backend)
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-      - uses: dtolnay/rust-toolchain@stable
-      - run: make examples
+      - uses: Swatinem/rust-cache@v2
+      # The workspace includes plonkwasm. Backend selection is explicit, and
+      # the Merkle crates expose mutually exclusive size_* features, so
+      # --all-features is not a valid feature set.
+      - name: Build all crates (BLST backend)
+        run: make build
+      - name: Run tests (BLST backend)
+        run: make test
+      - name: Run Clippy (BLST backend)
+        run: make clippy
+      # BLST is the repository backend except where native BLST cannot target
+      # the bare-metal/WASM configurations covered by the no_std checks.
+      - name: Check no_std and WASM (Dusk backend)
+        run: make no-std
+      - name: Build benchmarks (BLST backend)
+        run: make build-benches
+      - name: Build documentation (BLST backend)
+        run: make doc
+      - name: Run examples (BLST backend)
+        run: make examples
