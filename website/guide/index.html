@@ -11,7 +11,7 @@
   <header class="site-header"><div class="nav-wrap">
     <a class="wordmark" href="../"><span class="wordmark-mark">ZK<span class="wordmark-t">T</span></span> ZK Tools</a>
     <button class="menu-button" type="button" aria-label="Open navigation" aria-expanded="false" data-menu-button>Menu</button>
-    <nav class="site-nav" aria-label="Main navigation" data-navigation><a href="../guide/" aria-current="page">Getting started</a><a href="../concepts/">Concepts</a><a href="../toolkit/">Toolkit</a><a href="../examples/">Examples</a><a class="nav-github" href="https://github.com/dusk-network/zk-tools">GitHub ↗</a></nav>
+    <nav class="site-nav" aria-label="Main navigation" data-navigation><a href="../guide/" aria-current="page">Getting started</a><a href="../concepts/">Concepts</a><a href="../toolkit/">Toolkit</a><a href="../examples/">Examples</a><a href="../solidity/">Solidity</a><a class="nav-github" href="https://github.com/dusk-network/zk-tools">GitHub ↗</a></nav>
   </div></header>
   <main id="content">
     <header class="page-hero container"><p class="breadcrumbs"><a href="../">ZK Tools</a> / Getting started</p><h1>Your first proof, without the mystery.</h1><p>Clone the workspace, run the maintained example, then see how the circuit, prover, and verifier fit together.</p></header>
@@ -80,11 +80,11 @@ verifier.verify(&amp;proof, &amp;expected_public_inputs)?;</code></pre></div>
         <div class="callout"><strong>Validate the public statement</strong>The verifier must construct expected public inputs from trusted application state. Here, both snippets verify the ordered input <span class="inline-code">[BlsScalar::from(42u64)]</span>; the assertion also checks that the circuit emitted the order the protocol expects.</div>
 
         <h2 id="next">Where to go next</h2>
-        <ul><li>Learn why circuit shape must not depend on witness values.</li><li>Compare setup and compatibility boundaries across proof systems.</li><li>Try the Poseidon, Merkle, and Schnorr examples.</li></ul>
+        <ul><li>Learn why circuit shape must not depend on witness values.</li><li>Compare setup and compatibility boundaries across proof systems.</li><li>Try the Poseidon, Merkle, and Schnorr examples.</li><li><a href="../solidity/">Generate a BLS12-381 Groth16 verifier for Solidity.</a></li></ul>
         <div class="doc-next"><a href="../">← Overview</a><a href="../concepts/">Understand the concepts →</a></div>
       </article>
     </div></div>
   </main>
-  <footer class="site-footer"><div class="container"><div class="footer-grid"><div><h2 class="footer-title">ZK Tools</h2><p class="footer-copy">Shared circuits and practical zero-knowledge building blocks for Rust.</p></div><nav class="footer-links" aria-label="Footer navigation"><a href="../guide/">Getting started</a><a href="../toolkit/">Toolkit</a><a href="../examples/">Examples</a><a href="https://github.com/dusk-network/zk-tools">GitHub</a></nav></div><div class="footer-base"><span>© <span data-year>2026</span> ZK Tools · MPL-2.0</span><span class="powered">Powered by <a href="https://dusk.network" aria-label="Dusk"><img src="../assets/dusk-logo.svg" alt="Dusk"></a></span></div></div></footer>
+  <footer class="site-footer"><div class="container"><div class="footer-grid"><div><h2 class="footer-title">ZK Tools</h2><p class="footer-copy">Shared circuits and practical zero-knowledge building blocks for Rust.</p></div><nav class="footer-links" aria-label="Footer navigation"><a href="../guide/">Getting started</a><a href="../toolkit/">Toolkit</a><a href="../examples/">Examples</a><a href="../solidity/">Solidity</a><a href="https://github.com/dusk-network/zk-tools">GitHub</a></nav></div><div class="footer-base"><span>© <span data-year>2026</span> ZK Tools · MPL-2.0</span><span class="powered">Powered by <a href="https://dusk.network" aria-label="Dusk"><img src="../assets/dusk-logo.svg" alt="Dusk"></a></span></div></div></footer>
 </body>
 </html>
