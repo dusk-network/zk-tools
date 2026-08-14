@@ -1,4 +1,4 @@
-.PHONY: help test fmt clippy no-std build-benches doc examples clean
+.PHONY: help test fmt clippy no-std build-benches doc examples solidity-test solidity-fmt clean
 
 help: ## Display this help screen
 	@grep -h -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
@@ -28,9 +28,17 @@ doc: ## Generate warning-free public documentation
 	RUSTDOCFLAGS="-D warnings" cargo doc -p dusk-groth16 --no-deps \
 		--no-default-features --features=bls-backend-blst,std
 
-examples: ## Run the circuit example
+examples: ## Run the circuit example and build the Solidity exporter
 	cargo run --release -p dusk-groth16 --example circuit \
 		--no-default-features --features=bls-backend-blst,std
+	cargo build --release -p dusk-groth16 --example solidity \
+		--no-default-features --features=bls-backend-blst,std
+
+solidity-test: ## Run the EIP-2537 verifier tests with Foundry
+	forge test --root tests/solidity
+
+solidity-fmt: ## Format Solidity code; use CHECK=1 to check only
+	forge fmt --root tests/solidity $(if $(CHECK),--check,)
 
 clean: ## Remove workspace build artifacts
 	cargo clean

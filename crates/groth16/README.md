@@ -21,6 +21,27 @@ Proofs have a fixed 192-byte canonical compressed encoding through
 length-checked encodings through `to_bytes` and `try_from_bytes`. A verifier
 automatically prepares the fixed pairing terms when constructed.
 
+## Solidity verification
+
+`VerifyingKey::solidity_verifier` generates a circuit-specific verifier that
+uses the [EIP-2537](https://eips.ethereum.org/EIPS/eip-2537) BLS12-381 G1 MSM
+and pairing precompiles. Generate a new contract for every verification key.
+The contract accepts public inputs in the same Composer emission order as the
+Rust verifier and rejects values that are not canonical BLS scalar-field
+elements.
+
+Solidity verification uses a separate, uncompressed 512-byte proof transport
+encoding. Convert a Rust `Proof` with `Proof::to_eip2537`, or convert saved
+canonical proof bytes with the `dusk-groth16-solidity encode-proof` command.
+This transport stores `-A`, `B`, and `C` in EIP-2537 order; it does not replace
+the crate's canonical 192-byte proof format.
+
+Generated contracts only work on EVM networks that have activated EIP-2537.
+Each public-input query point is embedded in runtime bytecode, so circuits
+with many public inputs must also be checked against the target chain's
+contract-size limit (for example with `forge build --sizes`). See [`tests/solidity/README.md`](tests/solidity/README.md) for generation
+commands, integration details, and the Foundry test fixture.
+
 ## Circuit and public-input model
 
 `Compiler::trusted_setup` synthesizes `C::default()` and binds the resulting
@@ -45,6 +66,9 @@ returns exactly that public-input prefix without the constant-one entry.
   circuit witness values.
 - Point decoding is canonical and subgroup-checked by `dusk-curves`; proofs
   and fixed verification-key parameters at the identity are rejected.
+- Solidity verifiers depend on the target EVM's EIP-2537 implementation for
+  point validation and subgroup checks. They fail closed when a precompile is
+  unavailable or returns malformed output.
 
 ## Features
 
