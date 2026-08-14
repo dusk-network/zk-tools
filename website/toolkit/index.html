@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#edeaf3">
+  <meta name="description" content="Explore the Composer, Groth16, PLONK, Poseidon, Merkle, Schnorr, and WebAssembly crates in ZK Tools.">
+  <title>The toolkit — ZK Tools</title>
+  <link rel="stylesheet" href="../assets/styles.css"><script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#content">Skip to content</a>
+  <header class="site-header"><div class="nav-wrap"><a class="wordmark" href="../"><span class="wordmark-mark">ZK<span class="wordmark-t">T</span></span> ZK Tools</a><button class="menu-button" type="button" aria-label="Open navigation" aria-expanded="false" data-menu-button>Menu</button><nav class="site-nav" aria-label="Main navigation" data-navigation><a href="../guide/">Getting started</a><a href="../concepts/">Concepts</a><a href="../toolkit/" aria-current="page">Toolkit</a><a href="../examples/">Examples</a><a class="nav-github" href="https://github.com/dusk-network/zk-tools">GitHub ↗</a></nav></div></header>
+  <main id="content">
+    <header class="page-hero container"><p class="breadcrumbs"><a href="../">ZK Tools</a> / Toolkit</p><h1>A full stack of small, composable parts.</h1><p>Start with circuit semantics, choose a proof system, then add the hash, tree, signature, or browser boundary your application needs.</p></header>
+
+    <section class="section"><div class="container">
+      <p class="section-kicker">Crate map</p><h2 class="section-title">Know where each responsibility lives.</h2>
+      <div class="tool-list">
+        <div class="tool-row"><span class="tool-index">01</span><span class="tool-name">dusk-zk-composer</span><span class="tool-desc">Shared circuit-construction language with PLONKish and R1CS backends.</span><span class="tag">foundation</span></div>
+        <div class="tool-row"><span class="tool-index">02</span><span class="tool-name">dusk-groth16</span><span class="tool-desc">Circuit-specific Groth16 setup, proving, verification, keys, and proofs.</span><span class="tag">proof system</span></div>
+        <div class="tool-row"><span class="tool-index">03</span><span class="tool-name">dusk-plonk</span><span class="tool-desc">PLONK with KZG commitments, custom gates, transcripts, and debugging.</span><span class="tag">proof system</span></div>
+        <div class="tool-row"><span class="tool-index">04</span><span class="tool-name">dusk-poseidon</span><span class="tool-desc">Native and in-circuit Poseidon hashing with domain-separated sponge construction.</span><span class="tag">primitive</span></div>
+        <div class="tool-row"><span class="tool-index">05</span><span class="tool-name">dusk-merkle</span><span class="tool-desc">Sparse, height- and arity-parameterized trees with custom aggregation.</span><span class="tag">data structure</span></div>
+        <div class="tool-row"><span class="tool-index">06</span><span class="tool-name">poseidon-merkle</span><span class="tool-desc">Poseidon aggregation and optional in-circuit Merkle opening verification.</span><span class="tag">gadget</span></div>
+        <div class="tool-row"><span class="tool-index">07</span><span class="tool-name">jubjub-schnorr</span><span class="tool-desc">Single, double-key, variable-generator, multisignature, and circuit verification.</span><span class="tag">signature</span></div>
+        <div class="tool-row"><span class="tool-index">08</span><span class="tool-name">plonkwasm</span><span class="tool-desc">Proof, verification, serialization, and JSON-oriented helpers for WebAssembly frontends.</span><span class="tag">wasm bridge</span></div>
+      </div>
+    </div></section>
+
+    <section class="section" id="proof-systems"><div class="container split">
+      <div><p class="section-kicker">Proof systems</p><h2 class="section-title">Same statement, different operational profile.</h2><p class="section-lede">The shared circuit API keeps application logic stable while setup, constraint lowering, proof encoding, and compatibility remain explicit.</p></div>
+      <div>
+        <article class="card" style="min-height:auto;margin-bottom:18px"><span class="card-number">GROTH16 / R1CS</span><h3>Compact, circuit-specific</h3><p>Uses a circuit-specific single-party setup. Proofs have a fixed 192-byte canonical compressed encoding. The circuit's canonical R1CS shape is bound into the proving key.</p><a class="card-link" href="https://github.com/dusk-network/zk-tools/tree/main/crates/groth16">View source <span>↗</span></a></article>
+        <article class="card" style="min-height:auto"><span class="card-number">PLONK / PLONKISH</span><h3>Reusable parameters, custom gates</h3><p>Compiles against reusable KZG public parameters and supports optimized custom gates, a circuit debugger, and current plus legacy proof verification.</p><a class="card-link" href="https://github.com/dusk-network/zk-tools/tree/main/crates/plonk">View source <span>↗</span></a></article>
+      </div>
+    </section>
+
+    <section class="section section-dark" id="gadgets"><div class="container">
+      <p class="section-kicker">Primitives and gadgets</p><h2 class="section-title">The cryptographic pieces applications repeatedly need.</h2>
+      <div class="steps">
+        <article class="step"><span class="step-index">H</span><h3>Poseidon</h3><p>Field-native hashing, Hades permutation, SAFE sponge construction, and domain separation.</p></article>
+        <article class="step"><span class="step-index">M</span><h3>Merkle trees</h3><p>Sparse trees with configurable height, arity, aggregation, and zero-knowledge openings.</p></article>
+        <article class="step"><span class="step-index">S</span><h3>Schnorr</h3><p>JubJub signatures with native and in-circuit verification, including double-key variants.</p></article>
+        <article class="step"><span class="step-index">W</span><h3>WebAssembly</h3><p>Move proofs and ordered scalar inputs through a compact JSON-oriented browser ABI.</p></article>
+      </div>
+    </section>
+
+    <section class="section"><div class="container docs-layout">
+      <aside class="docs-sidebar"><strong>Compatibility checklist</strong><a href="#features">Feature flags</a><a href="#nostd">no_std</a><a href="#archives">Archives</a><a href="#reference">Reference links</a></aside>
+      <article class="docs-content">
+        <h2 id="features">Select one curve backend</h2><p>Consumers must explicitly choose exactly one BLS12-381 backend: <span class="inline-code">bls-backend-blst</span> or <span class="inline-code">bls-backend-dusk</span>. Keep that choice aligned across crates which exchange curve values.</p>
+        <div class="code-block"><div class="code-head"><span>Cargo.toml</span><button class="copy-button" type="button" data-copy>Copy</button></div><pre><code>[dependencies]
+dusk-poseidon = {
+  version = <span class="syntax-string">"0.42"</span>,
+  default-features = false,
+  features = [<span class="syntax-string">"bls-backend-blst"</span>]
+}</code></pre></div>
+        <h2 id="nostd">Plan for allocation separately from std</h2><p>Several crates split <span class="inline-code">alloc</span> from <span class="inline-code">std</span>. The root Makefile checks supported bare-metal and WebAssembly configurations with the portable backend.</p>
+        <h2 id="archives">Treat archives as backend-sensitive</h2><p>When <span class="inline-code">rkyv-impl</span> stores backend-specific curve representations, do not deserialize an archive after changing backends without an explicit migration. Proof formats, public-input ordering, transcript labels, and circuit shapes should receive the same compatibility discipline.</p>
+        <h2 id="reference">API and source reference</h2>
+        <ul>
+          <li><a href="https://docs.rs/dusk-zk-composer">Composer API</a> · <a href="https://github.com/dusk-network/zk-tools/tree/main/crates/composer">source</a></li>
+          <li><a href="https://docs.rs/dusk-groth16">Groth16 API</a> · <a href="https://github.com/dusk-network/zk-tools/tree/main/crates/groth16">source</a></li>
+          <li><a href="https://docs.rs/dusk-plonk">PLONK API</a> · <a href="https://github.com/dusk-network/zk-tools/tree/main/crates/plonk">source</a></li>
+          <li><a href="https://docs.rs/dusk-poseidon">Poseidon API</a> · <a href="https://github.com/dusk-network/zk-tools/tree/main/crates/poseidon">source</a></li>
+          <li><a href="https://docs.rs/dusk-merkle">Merkle API</a> · <a href="https://github.com/dusk-network/zk-tools/tree/main/crates/merkle">source</a></li>
+          <li><a href="https://docs.rs/jubjub-schnorr">Schnorr API</a> · <a href="https://github.com/dusk-network/zk-tools/tree/main/crates/jubjub-schnorr">source</a></li>
+          <li><a href="https://docs.rs/plonkwasm">PlonkWasm API</a> · <a href="https://github.com/dusk-network/zk-tools/tree/main/crates/plonkwasm">source</a></li>
+        </ul>
+        <div class="doc-next"><a href="../concepts/">← Core concepts</a><a href="../examples/">Try the examples →</a></div>
+      </article>
+    </div></section>
+  </main>
+  <footer class="site-footer"><div class="container"><div class="footer-grid"><div><h2 class="footer-title">ZK Tools</h2><p class="footer-copy">Shared circuits and practical zero-knowledge building blocks for Rust.</p></div><nav class="footer-links" aria-label="Footer navigation"><a href="../guide/">Getting started</a><a href="../toolkit/">Toolkit</a><a href="../examples/">Examples</a><a href="https://github.com/dusk-network/zk-tools">GitHub</a></nav></div><div class="footer-base"><span>© <span data-year>2026</span> ZK Tools · MPL-2.0</span><span class="powered">Powered by <a href="https://dusk.network" aria-label="Dusk"><img src="../assets/dusk-logo.svg" alt="Dusk"></a></span></div></div></footer>
+</body>
+</html>

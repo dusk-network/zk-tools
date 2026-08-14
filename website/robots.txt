@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://dusk-network.github.io/zk-tools/sitemap.xml

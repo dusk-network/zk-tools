@@ -1,4 +1,4 @@
-.PHONY: help build test fmt clippy no-std build-benches doc examples clean
+.PHONY: help build test fmt clippy no-std build-benches doc examples website-check clean
 
 help: ## Display this help screen
 	@grep -h -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
@@ -97,6 +97,9 @@ examples: ## Build and run the proof-system examples
 		--no-default-features --features=bls-backend-blst,std
 	cargo run --release -p dusk-plonk --example circuit \
 		--no-default-features --features=bls-backend-blst,std
+
+website-check: ## Validate the static documentation website
+	python3 website/scripts/check_site.py
 
 clean: ## Remove workspace build artifacts
 	cargo clean

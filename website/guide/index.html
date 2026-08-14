@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#edeaf3">
+  <meta name="description" content="Build and run your first zero-knowledge proof with ZK Tools.">
+  <title>Getting started — ZK Tools</title>
+  <link rel="stylesheet" href="../assets/styles.css"><script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#content">Skip to content</a>
+  <header class="site-header"><div class="nav-wrap">
+    <a class="wordmark" href="../"><span class="wordmark-mark">ZK<span class="wordmark-t">T</span></span> ZK Tools</a>
+    <button class="menu-button" type="button" aria-label="Open navigation" aria-expanded="false" data-menu-button>Menu</button>
+    <nav class="site-nav" aria-label="Main navigation" data-navigation><a href="../guide/" aria-current="page">Getting started</a><a href="../concepts/">Concepts</a><a href="../toolkit/">Toolkit</a><a href="../examples/">Examples</a><a class="nav-github" href="https://github.com/dusk-network/zk-tools">GitHub ↗</a></nav>
+  </div></header>
+  <main id="content">
+    <header class="page-hero container"><p class="breadcrumbs"><a href="../">ZK Tools</a> / Getting started</p><h1>Your first proof, without the mystery.</h1><p>Clone the workspace, run the maintained example, then see how the circuit, prover, and verifier fit together.</p></header>
+    <div class="section"><div class="container docs-layout">
+      <aside class="docs-sidebar"><strong>On this page</strong><a href="#prerequisites">Prerequisites</a><a href="#run">Run the example</a><a href="#circuit">Write the circuit</a><a href="#prove">Choose a proof system</a><a href="#next">Next steps</a></aside>
+      <article class="docs-content">
+        <h2 id="prerequisites">Prerequisites</h2>
+        <p>You need a current Rust toolchain, Git, and Make. Cryptographic examples and tests should be run in release mode; the root Makefile carries the supported feature combinations.</p>
+        <div class="callout"><strong>Development workspace</strong>The imported crates are coordinated here, but the repository is not published as one combined package. Start by cloning the workspace rather than copying dependency versions from these pages.</div>
+
+        <h2 id="run">Run the maintained examples</h2>
+        <div class="code-block"><div class="code-head"><span>terminal</span><button class="copy-button" type="button" data-copy>Copy</button></div><pre><code>git clone https://github.com/dusk-network/zk-tools.git
+cd zk-tools
+make examples</code></pre></div>
+        <p>This builds and runs both proof-system examples in release mode with the supported BLST backend. The examples prove the same basic idea through different compilation paths.</p>
+
+        <h2 id="circuit">Write one reusable circuit</h2>
+        <p>A circuit implements <span class="inline-code">Circuit</span> generically over <span class="inline-code">ComposerBackend</span>. Private values are witnesses; values the verifier is expected to know are public inputs.</p>
+        <div class="code-block"><div class="code-head"><span>product.rs</span><button class="copy-button" type="button" data-copy>Copy</button></div><pre><code><span class="syntax-key">use</span> dusk_zk_composer::prelude::*;
+
+#[derive(Default)]
+<span class="syntax-key">struct</span> ProductCircuit {
+    left: BlsScalar,
+    right: BlsScalar,
+    result: BlsScalar,
+}
+
+<span class="syntax-key">impl</span> Circuit <span class="syntax-key">for</span> ProductCircuit {
+    <span class="syntax-key">fn</span> circuit&lt;B: ComposerBackend&gt;(
+        &amp;self,
+        composer: &amp;<span class="syntax-key">mut</span> Composer&lt;B&gt;,
+    ) -&gt; Result&lt;(), CircuitError&gt; {
+        <span class="syntax-key">let</span> left = composer.append_witness(self.left);
+        <span class="syntax-key">let</span> right = composer.append_witness(self.right);
+        <span class="syntax-key">let</span> product = composer.gate_mul(
+            Constraint::new().mult(1).a(left).b(right),
+        );
+        <span class="syntax-key">let</span> result = composer.append_public(self.result);
+        composer.assert_equal(product, result);
+        Ok(())
+    }
+}</code></pre></div>
+        <p>This statement means: “I know <em>left</em> and <em>right</em> whose product equals the public <em>result</em>.” The Rust values are not the proof by themselves—the constraints are.</p>
+
+        <h2 id="prove">Choose a proof system</h2>
+        <h3>Groth16</h3>
+        <p>Groth16 uses a circuit-specific trusted setup. Setup compiles <span class="inline-code">ProductCircuit::default()</span>, binds its canonical R1CS shape, and creates a matched prover and verifier.</p>
+        <div class="code-block"><div class="code-head"><span>groth16.rs</span><button class="copy-button" type="button" data-copy>Copy</button></div><pre><code><span class="syntax-key">let</span> (prover, verifier) =
+    dusk_groth16::Compiler::trusted_setup::&lt;ProductCircuit, _&gt;(&amp;<span class="syntax-key">mut</span> OsRng)?;
+
+<span class="syntax-key">let</span> (proof, public_inputs) = prover.prove(&amp;<span class="syntax-key">mut</span> OsRng, &amp;circuit)?;
+<span class="syntax-key">let</span> expected_public_inputs = [BlsScalar::from(42u64)];
+assert_eq!(public_inputs.as_slice(), expected_public_inputs.as_slice());
+verifier.verify(&amp;proof, &amp;expected_public_inputs)?;</code></pre></div>
+        <div class="callout"><strong>Trust assumption</strong>The current Groth16 setup is single-party. Generate its randomness securely and destroy that randomness after setup. Multi-party contribution and verification flows are not implemented.</div>
+        <h3>PLONK</h3>
+        <p>PLONK compiles the circuit against reusable KZG public parameters and binds a transcript label to the compiled circuit.</p>
+        <div class="code-block"><div class="code-head"><span>plonk.rs</span><button class="copy-button" type="button" data-copy>Copy</button></div><pre><code><span class="syntax-key">let</span> pp = PublicParameters::setup(1 &lt;&lt; 8, &amp;<span class="syntax-key">mut</span> OsRng)?;
+<span class="syntax-key">let</span> (prover, verifier) =
+    dusk_plonk::Compiler::compile::&lt;ProductCircuit&gt;(&amp;pp, <span class="syntax-string">b"product-circuit"</span>)?;
+
+<span class="syntax-key">let</span> (proof, public_inputs) = prover.prove(&amp;<span class="syntax-key">mut</span> OsRng, &amp;circuit)?;
+<span class="syntax-key">let</span> expected_public_inputs = [BlsScalar::from(42u64)];
+assert_eq!(public_inputs.as_slice(), expected_public_inputs.as_slice());
+verifier.verify(&amp;proof, &amp;expected_public_inputs)?;</code></pre></div>
+        <div class="callout"><strong>Validate the public statement</strong>The verifier must construct expected public inputs from trusted application state. Here, both snippets verify the ordered input <span class="inline-code">[BlsScalar::from(42u64)]</span>; the assertion also checks that the circuit emitted the order the protocol expects.</div>
+
+        <h2 id="next">Where to go next</h2>
+        <ul><li>Learn why circuit shape must not depend on witness values.</li><li>Compare setup and compatibility boundaries across proof systems.</li><li>Try the Poseidon, Merkle, and Schnorr examples.</li></ul>
+        <div class="doc-next"><a href="../">← Overview</a><a href="../concepts/">Understand the concepts →</a></div>
+      </article>
+    </div></div>
+  </main>
+  <footer class="site-footer"><div class="container"><div class="footer-grid"><div><h2 class="footer-title">ZK Tools</h2><p class="footer-copy">Shared circuits and practical zero-knowledge building blocks for Rust.</p></div><nav class="footer-links" aria-label="Footer navigation"><a href="../guide/">Getting started</a><a href="../toolkit/">Toolkit</a><a href="../examples/">Examples</a><a href="https://github.com/dusk-network/zk-tools">GitHub</a></nav></div><div class="footer-base"><span>© <span data-year>2026</span> ZK Tools · MPL-2.0</span><span class="powered">Powered by <a href="https://dusk.network" aria-label="Dusk"><img src="../assets/dusk-logo.svg" alt="Dusk"></a></span></div></div></footer>
+</body>
+</html>
