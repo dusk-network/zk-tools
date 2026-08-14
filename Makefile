@@ -1,4 +1,4 @@
-.PHONY: help build test fmt clippy no-std build-benches doc examples website-check clean
+.PHONY: help build test fmt clippy no-std build-benches doc examples solidity-test solidity-fmt website-check clean
 
 help: ## Display this help screen
 	@grep -h -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
@@ -95,8 +95,16 @@ doc: ## Build documentation for every workspace crate
 examples: ## Build and run the proof-system examples
 	cargo run --release -p dusk-groth16 --example circuit \
 		--no-default-features --features=bls-backend-blst,std
+	cargo build --release -p dusk-groth16 --example solidity \
+		--no-default-features --features=bls-backend-blst,std
 	cargo run --release -p dusk-plonk --example circuit \
 		--no-default-features --features=bls-backend-blst,std
+
+solidity-test: ## Run the BLS12-381 Groth16 verifier tests with Foundry
+	forge test --root crates/groth16/tests/solidity
+
+solidity-fmt: ## Format Solidity code; use CHECK=1 to check only
+	forge fmt --root crates/groth16/tests/solidity $(if $(CHECK),--check,)
 
 website-check: ## Validate the static documentation website
 	python3 website/scripts/check_site.py
