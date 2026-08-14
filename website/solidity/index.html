@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#edeaf3">
+  <meta name="description" content="Generate and use a BLS12-381 Groth16 Solidity verifier with the EIP-2537 precompiles.">
+  <meta property="og:title" content="Solidity verification — ZK Tools">
+  <meta property="og:description" content="Verify Rust-generated Groth16 proofs on EIP-2537-compatible EVM networks.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://dusk-network.github.io/zk-tools/solidity/">
+  <title>Solidity verification — ZK Tools</title>
+  <link rel="canonical" href="https://dusk-network.github.io/zk-tools/solidity/">
+  <link rel="stylesheet" href="../assets/styles.css"><script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#content">Skip to content</a>
+  <header class="site-header"><div class="nav-wrap">
+    <a class="wordmark" href="../"><span class="wordmark-mark">ZK<span class="wordmark-t">T</span></span> ZK Tools</a>
+    <button class="menu-button" type="button" aria-label="Open navigation" aria-expanded="false" data-menu-button>Menu</button>
+    <nav class="site-nav" aria-label="Main navigation" data-navigation><a href="../guide/">Getting started</a><a href="../concepts/">Concepts</a><a href="../toolkit/">Toolkit</a><a href="../examples/">Examples</a><a href="../solidity/" aria-current="page">Solidity</a><a class="nav-github" href="https://github.com/dusk-network/zk-tools">GitHub ↗</a></nav>
+  </div></header>
+  <main id="content">
+    <header class="page-hero container"><p class="breadcrumbs"><a href="../">ZK Tools</a> / Solidity verification</p><h1>Take Groth16 verification on chain.</h1><p>Generate a verifier for each Groth16 verification key, convert Rust proofs into the EIP-2537 transport, and verify the same public statement from Solidity.</p></header>
+
+    <div class="section"><div class="container docs-layout">
+      <aside class="docs-sidebar"><strong>On this page</strong><a href="#requirements">Requirements</a><a href="#generate">Generate a verifier</a><a href="#proofs">Encode proofs</a><a href="#call">Call the contract</a><a href="#test">Test with Foundry</a><a href="#security">Security boundaries</a></aside>
+      <article class="docs-content">
+        <h2 id="requirements">Know the execution target</h2>
+        <p>The generated contract uses the BLS12-381 G1 MSM precompile at <span class="inline-code">0x0c</span> and pairing precompile at <span class="inline-code">0x0f</span>, as defined by <a href="https://eips.ethereum.org/EIPS/eip-2537">EIP-2537</a>. Deploy only to a network and EVM revision where those precompiles are active. An unavailable precompile is treated as verification failure.</p>
+        <p>The verifier is circuit-specific because it embeds the Groth16 verification key and exact public-input count. A new trusted setup or circuit shape produces a new key and therefore requires a newly generated contract.</p>
+        <div class="callout"><strong>Ethereum compatibility</strong>EIP-2537 was activated on Ethereum with Pectra. Other EVM networks can have different activation schedules; check the target chain rather than assuming that Solidity support implies precompile support.</div>
+
+        <h2 id="generate">Generate the circuit-specific verifier</h2>
+        <p>Persist the canonical verification key with <span class="inline-code">VerifyingKey::to_bytes()</span>, then run the repository exporter. Select the same supported curve backend used by the rest of the application.</p>
+        <div class="code-block"><div class="code-head"><span>terminal</span><button class="copy-button" type="button" data-copy>Copy</button></div><pre><code>cargo run --release -p dusk-groth16 \
+  --bin dusk-groth16-solidity \
+  --no-default-features \
+  --features=bls-backend-blst,std -- \
+  generate-verifier \
+  verifying-key.bin \
+  ProductVerifier \
+  ProductVerifier.sol</code></pre></div>
+        <p>The same operation is available as the allocation-only Rust API:</p>
+        <div class="code-block"><div class="code-head"><span>export.rs</span><button class="copy-button" type="button" data-copy>Copy</button></div><pre><code><span class="syntax-key">let</span> source = verifying_key.solidity_verifier(<span class="syntax-string">"ProductVerifier"</span>)?;
+std::fs::write(<span class="syntax-string">"ProductVerifier.sol"</span>, source)?;</code></pre></div>
+
+        <h2 id="proofs">Convert the proof transport</h2>
+        <p>The crate's canonical Groth16 proof remains a 192-byte compressed <span class="inline-code">(A, B, C)</span> encoding. EIP-2537 consumes uncompressed, big-endian field elements, so the generated contract instead accepts a 512-byte transport containing <span class="inline-code">(-A, B, C)</span>:</p>
+        <ul>
+          <li>bytes 0–127: <span class="inline-code">-A</span>, an EIP-2537 G1 point;</li>
+          <li>bytes 128–383: <span class="inline-code">B</span>, an EIP-2537 G2 point in <span class="inline-code">c0 || c1</span> coefficient order;</li>
+          <li>bytes 384–511: <span class="inline-code">C</span>, an EIP-2537 G1 point.</li>
+        </ul>
+        <p>Convert a proof directly in Rust with <span class="inline-code">proof.to_eip2537()</span>, or convert a saved canonical proof:</p>
+        <div class="code-block"><div class="code-head"><span>terminal</span><button class="copy-button" type="button" data-copy>Copy</button></div><pre><code>cargo run --release -p dusk-groth16 \
+  --bin dusk-groth16-solidity \
+  --no-default-features \
+  --features=bls-backend-blst,std -- \
+  encode-proof proof.bin proof.eip2537.bin</code></pre></div>
+        <div class="callout"><strong>Keep both formats distinct</strong>The 512-byte value is an EVM transport, not a new canonical proof encoding. Store and exchange canonical proof bytes unless the receiving boundary explicitly requires EIP-2537 calldata.</div>
+
+        <h2 id="call">Preserve the public statement</h2>
+        <div class="code-block"><div class="code-head"><span>ProductVerifier.sol</span><button class="copy-button" type="button" data-copy>Copy</button></div><pre><code><span class="syntax-key">bool</span> valid = verifier.verifyProof(
+    eip2537Proof,
+    publicInputs
+);</code></pre></div>
+        <p>The ABI is <span class="inline-code">verifyProof(bytes,uint256[])</span>. Public inputs must be canonical BLS scalar-field values and must appear in Composer emission order—the same order returned by the Rust prover and expected by the Rust verifier. Build these values from trusted application state rather than accepting an untrusted array merely because it arrived next to a proof.</p>
+
+        <h2 id="test">Exercise the cross-language boundary</h2>
+        <p>The checked-in Foundry project compiles a deterministic circuit-specific verifier and verifies a proof generated by the Rust stack. It also covers well-formed but incorrect proofs, wrong public inputs, non-canonical scalars, incorrect lengths, identity proof elements, non-canonical base-field coordinates, off-curve points, and wrong-subgroup points in every proof element.</p>
+        <div class="code-block"><div class="code-head"><span>terminal</span><button class="copy-button" type="button" data-copy>Copy</button></div><pre><code>make solidity-fmt CHECK=1
+make solidity-test
+forge build --root crates/groth16/tests/solidity \
+  test/fixtures/SquareVerifier.sol --sizes</code></pre></div>
+        <p>Foundry must support the Prague EVM revision. The deterministic fixture setup seed is for reproducible tests only and must never be used for production keys.</p>
+
+        <h2 id="security">Review the security boundaries</h2>
+        <ul>
+          <li>The current Groth16 setup is circuit-specific and single-party. Generate setup randomness securely and destroy it; MPC ceremony flows are not implemented.</li>
+          <li>The contract rejects identity proof elements and public inputs outside the scalar field. The target EVM's EIP-2537 implementation validates every base-field coordinate, curve equation, and subgroup for proof and verification-key points. The contract checks call success and exact return sizes and fails closed.</li>
+          <li>Malformed EIP-2537 input burns all gas forwarded to a precompile. Generated contracts cap forwarded gas according to the finalized operation schedule.</li>
+          <li>Verification-key query points are embedded in runtime bytecode. Circuits with many public inputs must be checked against the target chain's contract-size limit.</li>
+          <li>The verifier does not prove that the embedded key came from a trustworthy setup or that its parameters are algebraically consistent. Key provenance and setup integrity remain application responsibilities.</li>
+          <li>The generator and contract are licensed under MPL-2.0. They have not yet undergone a dedicated security audit.</li>
+        </ul>
+        <div class="doc-next"><a href="../examples/">← Examples</a><a href="https://github.com/dusk-network/zk-tools/tree/main/crates/groth16/tests/solidity">Open the Foundry project ↗</a></div>
+      </article>
+    </div></div>
+  </main>
+  <footer class="site-footer"><div class="container"><div class="footer-grid"><div><h2 class="footer-title">ZK Tools</h2><p class="footer-copy">Shared circuits and practical zero-knowledge building blocks for Rust.</p></div><nav class="footer-links" aria-label="Footer navigation"><a href="../guide/">Getting started</a><a href="../toolkit/">Toolkit</a><a href="../examples/">Examples</a><a href="../solidity/">Solidity</a><a href="https://github.com/dusk-network/zk-tools">GitHub</a></nav></div><div class="footer-base"><span>© <span data-year>2026</span> ZK Tools · MPL-2.0</span><span class="powered">Powered by <a href="https://dusk.network" aria-label="Dusk"><img src="../assets/dusk-logo.svg" alt="Dusk"></a></span></div></div></footer>
+</body>
+</html>

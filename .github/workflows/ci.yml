@@ -26,6 +26,8 @@ jobs:
         with:
           components: rustfmt
       - run: make fmt CHECK=1
+      - name: Validate website
+        run: make website-check
 
   validation:
     name: Workspace validation
@@ -55,3 +57,14 @@ jobs:
         run: make doc
       - name: Run examples (BLST backend)
         run: make examples
+
+  solidity:
+    name: Solidity verifier
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: foundry-rs/foundry-toolchain@v1
+      - name: Check Solidity formatting
+        run: make solidity-fmt CHECK=1
+      - name: Run EIP-2537 verifier tests
+        run: make solidity-test

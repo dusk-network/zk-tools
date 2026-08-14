@@ -8,7 +8,7 @@
 </head>
 <body>
   <a class="skip-link" href="#content">Skip to content</a>
-  <header class="site-header"><div class="nav-wrap"><a class="wordmark" href="../"><span class="wordmark-mark">ZK<span class="wordmark-t">T</span></span> ZK Tools</a><button class="menu-button" type="button" aria-label="Open navigation" aria-expanded="false" data-menu-button>Menu</button><nav class="site-nav" aria-label="Main navigation" data-navigation><a href="../guide/">Getting started</a><a href="../concepts/">Concepts</a><a href="../toolkit/" aria-current="page">Toolkit</a><a href="../examples/">Examples</a><a class="nav-github" href="https://github.com/dusk-network/zk-tools">GitHub ↗</a></nav></div></header>
+  <header class="site-header"><div class="nav-wrap"><a class="wordmark" href="../"><span class="wordmark-mark">ZK<span class="wordmark-t">T</span></span> ZK Tools</a><button class="menu-button" type="button" aria-label="Open navigation" aria-expanded="false" data-menu-button>Menu</button><nav class="site-nav" aria-label="Main navigation" data-navigation><a href="../guide/">Getting started</a><a href="../concepts/">Concepts</a><a href="../toolkit/" aria-current="page">Toolkit</a><a href="../examples/">Examples</a><a href="../solidity/">Solidity</a><a class="nav-github" href="https://github.com/dusk-network/zk-tools">GitHub ↗</a></nav></div></header>
   <main id="content">
     <header class="page-hero container"><p class="breadcrumbs"><a href="../">ZK Tools</a> / Toolkit</p><h1>A full stack of small, composable parts.</h1><p>Start with circuit semantics, choose a proof system, then add the hash, tree, signature, or browser boundary your application needs.</p></header>
 
@@ -29,7 +29,7 @@
     <section class="section" id="proof-systems"><div class="container split">
       <div><p class="section-kicker">Proof systems</p><h2 class="section-title">Same statement, different operational profile.</h2><p class="section-lede">The shared circuit API keeps application logic stable while setup, constraint lowering, proof encoding, and compatibility remain explicit.</p></div>
       <div>
-        <article class="card" style="min-height:auto;margin-bottom:18px"><span class="card-number">GROTH16 / R1CS</span><h3>Compact, circuit-specific</h3><p>Uses a circuit-specific single-party setup. Proofs have a fixed 192-byte canonical compressed encoding. The circuit's canonical R1CS shape is bound into the proving key.</p><a class="card-link" href="https://github.com/dusk-network/zk-tools/tree/main/crates/groth16">View source <span>↗</span></a></article>
+        <article class="card" style="min-height:auto;margin-bottom:18px"><span class="card-number">GROTH16 / R1CS</span><h3>Compact, circuit-specific</h3><p>Uses a circuit-specific single-party setup. Proofs have a fixed 192-byte canonical compressed encoding. The circuit's canonical R1CS shape is bound into the proving key, and its verification key can generate an <a href="../solidity/">EIP-2537 Solidity verifier</a>.</p><a class="card-link" href="https://github.com/dusk-network/zk-tools/tree/main/crates/groth16">View source <span>↗</span></a></article>
         <article class="card" style="min-height:auto"><span class="card-number">PLONK / PLONKISH</span><h3>Reusable parameters, custom gates</h3><p>Compiles against reusable KZG public parameters and supports optimized custom gates, a circuit debugger, and current plus legacy proof verification.</p><a class="card-link" href="https://github.com/dusk-network/zk-tools/tree/main/crates/plonk">View source <span>↗</span></a></article>
       </div>
     </section>
@@ -70,6 +70,6 @@ dusk-poseidon = {
       </article>
     </div></section>
   </main>
-  <footer class="site-footer"><div class="container"><div class="footer-grid"><div><h2 class="footer-title">ZK Tools</h2><p class="footer-copy">Shared circuits and practical zero-knowledge building blocks for Rust.</p></div><nav class="footer-links" aria-label="Footer navigation"><a href="../guide/">Getting started</a><a href="../toolkit/">Toolkit</a><a href="../examples/">Examples</a><a href="https://github.com/dusk-network/zk-tools">GitHub</a></nav></div><div class="footer-base"><span>© <span data-year>2026</span> ZK Tools · MPL-2.0</span><span class="powered">Powered by <a href="https://dusk.network" aria-label="Dusk"><img src="../assets/dusk-logo.svg" alt="Dusk"></a></span></div></div></footer>
+  <footer class="site-footer"><div class="container"><div class="footer-grid"><div><h2 class="footer-title">ZK Tools</h2><p class="footer-copy">Shared circuits and practical zero-knowledge building blocks for Rust.</p></div><nav class="footer-links" aria-label="Footer navigation"><a href="../guide/">Getting started</a><a href="../toolkit/">Toolkit</a><a href="../examples/">Examples</a><a href="../solidity/">Solidity</a><a href="https://github.com/dusk-network/zk-tools">GitHub</a></nav></div><div class="footer-base"><span>© <span data-year>2026</span> ZK Tools · MPL-2.0</span><span class="powered">Powered by <a href="https://dusk.network" aria-label="Dusk"><img src="../assets/dusk-logo.svg" alt="Dusk"></a></span></div></div></footer>
 </body>
 </html>

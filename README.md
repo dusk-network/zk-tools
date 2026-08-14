@@ -10,7 +10,8 @@
 This repository brings together the cryptographic tools used to build zero-knowledge applications. It includes:
 
 - 🧩 **ZK Composer:** an arithmetic circuit API supporting both R1CS and PLONKish circuits.
-- 🔐 **Groth16:** the Groth16 proving system for circuits written with Composer.
+- 🔐 **Groth16:** the Groth16 proving system for Composer circuits, including
+  circuit-specific BLS12-381 Solidity verifier generation through EIP-2537.
 - 🔐 **PLONK:** the PLONK proving system with custom gates, also using Composer circuits.
 - 🧰 **Gadgets:** reusable Composer components, including:
   - ✍️ Schnorr signatures over the Jubjub elliptic curve.
@@ -110,6 +111,17 @@ Run the complete, executable examples in release mode with `make examples`.
 See [`crates/groth16/examples/circuit.rs`](crates/groth16/examples/circuit.rs)
 and [`crates/plonk/examples/circuit.rs`](crates/plonk/examples/circuit.rs) for
 more detail.
+
+## Solidity verification
+
+Groth16 verification keys can generate circuit-specific Solidity contracts for
+EVM networks with the EIP-2537 BLS12-381 precompiles. Proofs are converted from
+the crate's canonical 192-byte compressed format into a separate 512-byte
+EIP-2537 transport before they are submitted to the contract.
+
+See the [Solidity verification guide](https://dusk-network.github.io/zk-tools/solidity/)
+for the generation workflow, verifier ABI, Foundry tests, compatibility limits,
+and security boundaries.
 
 ## License
 

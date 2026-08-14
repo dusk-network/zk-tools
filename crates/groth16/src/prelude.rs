@@ -15,5 +15,6 @@ pub use dusk_zk_composer::{
 pub use crate::Error;
 #[cfg(feature = "alloc")]
 pub use crate::{
-    Compiler, PreparedVerifyingKey, Proof, Prover, ProvingKey, Verifier, VerifyingKey,
+    Compiler, EIP2537_PROOF_SIZE, Eip2537Proof, PreparedVerifyingKey, Proof, Prover, ProvingKey,
+    SolidityError, Verifier, VerifyingKey, encode_eip2537_scalar,
 };

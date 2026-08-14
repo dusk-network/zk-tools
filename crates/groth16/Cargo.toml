@@ -40,6 +40,15 @@ features = ["bls-backend-blst", "std"]
 name = "circuit"
 required-features = ["std"]
 
+[[example]]
+name = "solidity"
+required-features = ["std"]
+
+[[bin]]
+name = "dusk-groth16-solidity"
+path = "src/bin/solidity.rs"
+required-features = ["std"]
+
 [[bench]]
 name = "groth16"
 harness = false

@@ -34,6 +34,8 @@ mod msm;
 mod proof;
 #[cfg(feature = "alloc")]
 mod qap;
+#[cfg(feature = "alloc")]
+mod solidity;
 
 #[cfg(feature = "alloc")]
 pub use compiler::{Compiler, Prover, Verifier};
@@ -42,6 +44,8 @@ pub use error::Error;
 pub use keys::{PreparedVerifyingKey, ProvingKey, VerifyingKey};
 #[cfg(feature = "alloc")]
 pub use proof::{PROOF_SIZE, Proof};
+#[cfg(feature = "alloc")]
+pub use solidity::{EIP2537_PROOF_SIZE, Eip2537Proof, SolidityError, encode_eip2537_scalar};
 
 /// Common imports for defining and proving Groth16 circuits.
 pub mod prelude;
