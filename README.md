@@ -1,25 +1,25 @@
 <h1 align="center">ZK Tools</h1>
 
-<p align="center"><em>One API. Many proof systems.</em></p>
+<p align="center"><em>One API. One circuit. Multiple proof systems.</em></p>
 
 <p align="center">
   <a href="https://github.com/dusk-network/zk-tools/actions/workflows/ci.yml"><img alt="Build Status" src="https://github.com/dusk-network/zk-tools/actions/workflows/ci.yml/badge.svg"></a>
   <a href="https://github.com/dusk-network/zk-tools"><img alt="Repository" src="https://img.shields.io/badge/github-zk--tools-blueviolet?logo=github"></a>
 </p>
 
-This repository contains cryptographic tools used to develop zero-knowledge applications. These are the included tools:
+This repository brings together the cryptographic tools used to build zero-knowledge applications. It includes:
 
-- 🧩 **ZK composer:** an arithmetic circuit writer supporting both R1CS and Plonkish circuits.
-- 🔐 **Groth16:** the Groth'16 proving scheme, used with circuits written by the ZK composer.
-- 🔐 **Plonk:** the Plonk proving scheme with custom gates, used with circuits written by the ZK composer.
-- 🧰 **Gadgets:** several gadgets written using the ZK composer. In particular:
+- 🧩 **ZK Composer:** an arithmetic circuit API supporting both R1CS and PLONKish circuits.
+- 🔐 **Groth16:** the Groth16 proving system for circuits written with Composer.
+- 🔐 **PLONK:** the PLONK proving system with custom gates, also using Composer circuits.
+- 🧰 **Gadgets:** reusable Composer components, including:
   - ✍️ Schnorr signatures over the Jubjub elliptic curve.
-  - #️⃣ Poseidon hashing function.
+  - #️⃣ Poseidon hashing.
   - 🌳 Poseidon Merkle trees.
 
 Some code comes from external repositories, which were imported with their relevant Git histories and relocated under `crates/`. Original revisions and provenance are recorded in [`UPSTREAMS.md`](UPSTREAMS.md), while [`docs/upstream-imports.md`](docs/upstream-imports.md) documents the reproducible transformations required for future synchronization.
 
-Notice that the dependencies of the imported crates have been updated to use local paths. Furthermore, take into account that changes are continuously applied to introduce new experimental features and improvements.
+The imported crates use local path dependencies so they can be developed and tested together. This workspace also contains ongoing experimental changes and improvements.
 
 > **⚠️ DISCLAIMER:** this workspace is currently experimental and intended for coordinated development. It is not published as a combined package, and the imported crates should not be released from this repository.
 
@@ -76,10 +76,12 @@ fn main() {
     let (proof, public_inputs) = prover
         .prove(&mut OsRng, &circuit)
         .expect("proof generation should succeed");
+    let expected_public_inputs = [BlsScalar::from(42u64)];
+    assert_eq!(public_inputs.as_slice(), expected_public_inputs.as_slice());
       
     // Verify proof
     verifier
-        .verify(&proof, &public_inputs)
+        .verify(&proof, &expected_public_inputs)
         .expect("proof should verify");
 
     // PLONK
@@ -95,10 +97,11 @@ fn main() {
     let (proof, public_inputs) = prover
         .prove(&mut OsRng, &circuit)
         .expect("proof generation should succeed");
+    assert_eq!(public_inputs.as_slice(), expected_public_inputs.as_slice());
     
     // Verify proof
     verifier
-        .verify(&proof, &public_inputs)
+        .verify(&proof, &expected_public_inputs)
         .expect("proof should verify");
 }
 ```
