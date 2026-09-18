@@ -99,7 +99,10 @@ impl Compiler {
         label: &[u8],
         composer: &Composer<Plonkish>,
     ) -> Result<(Prover, Verifier), Error> {
-        let n = (composer.constraints() + 6).next_power_of_two();
+        // Match the evaluation domain used by preprocessing and proving.
+        // Trimming adds the blinding allowance after rounding; adding it
+        // here as well can unnecessarily double the required setup size.
+        let n = composer.constraints().next_power_of_two();
 
         let (commit, opening) = pp.trim(n)?;
 

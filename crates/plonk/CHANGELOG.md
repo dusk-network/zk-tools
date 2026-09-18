@@ -74,6 +74,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Fix shifted-wire blinding and unnecessary SRS oversizing. Proving requires
+  key capacity through degree `n + 9` (previously `n + 6`), where `n` is the
+  evaluation-domain size; proof serialization and verifier keys remain compatible
+  ([#15](https://github.com/dusk-network/zk-tools/issues/15)).
 - Reject degenerate KZG opening keys and rebuild archived prepared pairing
   values from their validated affine points before use [#887]
 - Bind `append_logic_xor`/`append_logic_and` output to their inputs [#867]
