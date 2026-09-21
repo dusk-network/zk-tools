@@ -68,7 +68,8 @@ impl Prover {
         }
     }
 
-    /// adds blinding scalars to a witness vector
+    /// Adds `hiding_degree + 1` random coefficients times `X^n - 1` to
+    /// the interpolated witnesses, preserving every evaluation on the domain.
     ///
     /// appends:
     ///
@@ -348,10 +349,13 @@ impl Prover {
                 d_scalars[i] = prover[constraint.d()];
             });
 
-        let a_poly = Self::blind_poly(rng, &a_scalars, 1, &domain);
-        let b_poly = Self::blind_poly(rng, &b_scalars, 1, &domain);
+        // The shifted wires are opened at both z and z * omega. Quadratic
+        // masks leave one random coefficient after those two evaluations
+        // to hide the commitment. The unshifted c wire needs a linear mask.
+        let a_poly = Self::blind_poly(rng, &a_scalars, 2, &domain);
+        let b_poly = Self::blind_poly(rng, &b_scalars, 2, &domain);
         let c_poly = Self::blind_poly(rng, &c_scalars, 1, &domain);
-        let d_poly = Self::blind_poly(rng, &d_scalars, 1, &domain);
+        let d_poly = Self::blind_poly(rng, &d_scalars, 2, &domain);
 
         // commit to wire polynomials
         // ([a(x)]_1, [b(x)]_1, [c(x)]_1, [d(x)]_1)
@@ -427,7 +431,8 @@ impl Prover {
             args,
         )?;
 
-        // split quotient polynomial into 4 degree `n` polynomials
+        // Split at multiples of n. The first three chunks have degree at
+        // most n after blinding; the fourth can have degree n + 9.
         let domain_size = domain.size();
 
         let mut t_low_vec = t_poly[0..domain_size].to_vec();
@@ -643,6 +648,9 @@ impl Prover {
         Ok((proof, public_inputs))
     }
 }
+
+#[cfg(test)]
+mod blinding_tests;
 
 #[cfg(test)]
 mod tests {
