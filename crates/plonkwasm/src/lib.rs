@@ -80,12 +80,11 @@ pub fn deserialize_public_inputs(public_inputs: &[u8]) -> Result<Vec<BlsScalar>,
     }
 
     public_inputs
-        .chunks_exact(32)
+        .as_chunks::<32>()
+        .0
+        .iter()
         .map(|chunk| {
-            let bytes: [u8; 32] = chunk
-                .try_into()
-                .map_err(|_| "public input chunk must be 32 bytes".to_string())?;
-            Option::<BlsScalar>::from(BlsScalar::from_bytes(&bytes))
+            Option::<BlsScalar>::from(BlsScalar::from_bytes(chunk))
                 .ok_or_else(|| "invalid public input scalar encoding".to_string())
         })
         .collect()
@@ -205,7 +204,9 @@ pub mod wasm {
         }
 
         hex.as_bytes()
-            .chunks_exact(2)
+            .as_chunks::<2>()
+            .0
+            .iter()
             .map(|pair| {
                 let high = decode_hex_nibble(pair[0])?;
                 let low = decode_hex_nibble(pair[1])?;
